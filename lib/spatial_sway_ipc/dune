@@ -1,0 +1,3 @@
+(library
+ (name spatial_sway_ipc)
+ (public_name spatial-sway.ipc))

@@ -1,0 +1,3 @@
+(executable
+ (name main)
+ (libraries spatial-sway.ipc sway-ipc lwt lwt.unix))
