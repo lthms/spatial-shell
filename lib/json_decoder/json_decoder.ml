@@ -10,7 +10,7 @@ module Syntax = struct
 
   let ( let* ) dec k value =
     let x = dec value in
-    k x
+    k x value
 
   let return x _value = x
 end
