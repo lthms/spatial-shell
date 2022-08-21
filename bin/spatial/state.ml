@@ -91,7 +91,7 @@ let arrange_workspace ~focus ~socket workspace state =
   Lwt.return ()
 
 let arrange_current_workspace state =
-  Sway_ipc.wtih_socket (fun socket ->
+  Sway_ipc.with_socket (fun socket ->
       arrange_workspace ~focus:true ~socket state.current_workspace state)
 
 let register_window default_full_view default_maximum_visible workspace state

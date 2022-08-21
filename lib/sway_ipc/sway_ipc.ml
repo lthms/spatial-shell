@@ -1,6 +1,12 @@
+(* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. *)
+
 open Sway_ipc_types
 
-let connect () =
+type socket = Socket.socket
+
+let connect () : socket Lwt.t =
   let open Lwt.Syntax in
   let socket = Lwt_unix.socket PF_UNIX SOCK_STREAM 0 in
   let+ () = Lwt_unix.connect socket (ADDR_UNIX (Socket.sway_sock_path ())) in
@@ -10,7 +16,7 @@ let connect () =
 
 let close socket = Socket.close socket
 
-let wtih_socket f =
+let with_socket f =
   let open Lwt.Syntax in
   let* socket = connect () in
   let* res = f socket in

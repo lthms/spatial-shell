@@ -1,6 +1,10 @@
+(* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. *)
+
 open Sway_ipc_types
 
-type socket = Lwt_io.input_channel * Lwt_io.output_channel
+type socket = Lwt_io.input_channel * Lwt_io.output_channel * Lwt_unix.file_descr
 
 let sway_sock_path () =
   match Sys.getenv_opt "SWAYSOCK" with
