@@ -27,9 +27,18 @@ let window_handle (ev : Event.window_event) state =
   | Event.Focus | Event.Title | Event.Fullscreen_mode | Event.Move | Event.Mark
   | Event.Urgent ->
       Lwt.return (state, false)
-  | Event.Floating ->
-      (* TODO: disable spatial-sway for the concerned workspace *)
-      Lwt.return (state, false)
+  | Event.Floating -> (
+      match ev.container.node_type with
+      | Con ->
+          let state =
+            State.register_window false 2 state.State.current_workspace state
+              ev.container
+          in
+          Lwt.return (state, true)
+      | Floating_con ->
+          let state = State.unregister_window state ev.container.id in
+          Lwt.return (state, true)
+      | _ -> Lwt.return (state, false))
 
 let event_handle ev state =
   let open Lwt.Syntax in

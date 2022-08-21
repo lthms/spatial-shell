@@ -96,8 +96,8 @@ let arrange_current_workspace state =
 
 let register_window default_full_view default_maximum_visible workspace state
     (tree : Node.t) =
-  match tree.app_id with
-  | Some app_id ->
+  match (tree.node_type, tree.app_id) with
+  | Con, Some app_id ->
       insert_window default_full_view default_maximum_visible workspace tree.id
         app_id state
   | _ -> state
