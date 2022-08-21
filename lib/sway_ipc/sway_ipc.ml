@@ -28,7 +28,7 @@ let send_command ?socket cmd =
   let* () = Socket.write_raw_message socket raw in
   let* op', payload = Socket.read_raw_message socket in
   assert (op = op');
-  Lwt.return @@ Json_decoder.of_string (Message.reply_decoder cmd) payload
+  Lwt.return @@ Json_decoder.of_string_exn (Message.reply_decoder cmd) payload
 
 let subscribe ?socket events =
   let open Lwt.Syntax in

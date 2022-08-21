@@ -45,4 +45,5 @@ let float = Ezjsonm.get_float
 let rec mu : ('a t -> 'a t) -> 'a t =
  fun f_enc value -> (f_enc (mu f_enc)) value
 
-let of_string dec str = Ezjsonm.value_from_string str |> dec
+let of_string_exn dec str = Ezjsonm.value_from_string str |> dec
+let of_string dec str = try Some (of_string_exn dec str) with _ -> None

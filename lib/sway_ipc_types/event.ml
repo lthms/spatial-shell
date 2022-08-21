@@ -160,4 +160,4 @@ let decoder (code : event_type) =
 
 let event_of_raw_message (opc, payload) =
   let ev = event_type_of_code opc in
-  Json_decoder.of_string (decoder ev) payload
+  Json_decoder.of_string_exn (decoder ev) payload
