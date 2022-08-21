@@ -7,17 +7,6 @@ let sway_sock_path () =
   | Some path -> path
   | None -> failwith "SWAYSOCK environment variable is missing"
 
-let read_magic_string (socket, _, _) =
-  let open Lwt.Syntax in
-  let magic = Raw_message.magic_string in
-  let* msg = Lwt_io.read ~count:(String.length magic) socket in
-  assert (msg = magic);
-  Lwt.return ()
-
-let write_raw_message (_, socket, _) raw =
-  let msg = Raw_message.to_string raw in
-  Lwt_io.write socket msg
-
 let rec read_all ~count ((socket, _, _) as s) =
   let open Lwt.Syntax in
   let* payload = Lwt_io.read ~count socket in
@@ -26,14 +15,25 @@ let rec read_all ~count ((socket, _, _) as s) =
     let+ rest = read_all ~count:(count - String.length payload) s in
     payload ^ rest
 
-let read_raw_message ((socket, _, _) as s) =
+let read_magic_string socket =
   let open Lwt.Syntax in
-  let* () = read_magic_string s in
-  let* msg = Lwt_io.read ~count:4 socket in
+  let magic = Raw_message.magic_string in
+  let* msg = read_all ~count:(String.length magic) socket in
+  assert (msg = magic);
+  Lwt.return ()
+
+let write_raw_message (_, socket, _) raw =
+  let msg = Raw_message.to_string raw in
+  Lwt_io.write socket msg
+
+let read_raw_message socket =
+  let open Lwt.Syntax in
+  let* () = read_magic_string socket in
+  let* msg = read_all ~count:4 socket in
   let size = Raw_message.string_to_int32 msg in
-  let* msg = Lwt_io.read ~count:4 socket in
+  let* msg = read_all ~count:4 socket in
   let msg_type = Raw_message.string_to_int32 msg in
-  let* payload = read_all ~count:(Int32.to_int size) s in
+  let* payload = read_all ~count:(Int32.to_int size) socket in
   Lwt.return (msg_type, payload)
 
 let rec read_next_event s evs =
