@@ -12,36 +12,36 @@ look at `man sway-ipc`!).
 It is missing some features, but `spatial-sway` can already by used
 today. Here is an example of a configuration that works.
 
-```
+```bash
 set $spatial "/usr/local/bin/spatial"
 set $spatialmsg "/usr/local/bin/spatialmsg"
 
 # Start the daemon when sway is started.
 exec $spatialmsg
 
-# Focus the next window on the left, if the focus is on the last window
-# on the left of the visible area, windows will shift right to make room
-# for the next candidate on the loop, and the window on the far right
-# will disappear.
-bindsym $mod+t exec $spatialmsg move_left
+# Focus the previous window in the ribbon, that is on the left, if the
+# focus is on the last window on the left of the visible area, windows
+# will shift right to make room for the next candidate on the loop,
+# and the window on the far right will disappear.
+bindsym $mod+t exec $spatialmsg focus prev
 
 # Same thing, for the right.
-bindsym $mod+n exec $spatialmsg move_right
+bindsym $mod+n exec $spatialmsg focus next
 
 # Move the focused window on the left, shift the loop if necessary.
-bindsym $mod+Shift+t exec $spatialmsg move_window_left
+bindsym $mod+Shift+t exec $spatialmsg move prev
 
 # Move the focused window on the right, shift the loop if necessary.
-bindsym $mod+Shift+n exec $spatialmsg move_window_right
+bindsym $mod+Shift+n exec $spatialmsg move next
 
-# Toggle between a mode where only one window is visible, or a fixed
-# numbers. spatial-sway will remember how may windows you want visible
-# when not in full view mode.
-bindsym $mod+space exec $spatialmsg toggle_full_view
+# Toggle between a mode where only one window is visible (maximized
+# mode), or a fixed numbers (split mode). spatial-sway will remember
+# how may windows you want visible when not in full view mode.
+bindsym $mod+space exec $spatialmsg maximized toggle
 
-# Decrease the number of windows to display when not in full view mode.
-bindsym $mod+g exec $spatialmsg decr_maximum_visible_size
+# Decrease the number of windows to display when in split mode.
+bindsym $mod+g exec $spatialmsg split decrement
 
-# Increase the number of windows to display when not in full view mode.
-bindsym $mod+h exec $spatialmsg incr_maximum_visible_size
+# Increase the number of windows to display when in split mode.
+bindsym $mod+h exec $spatialmsg split increment
 ```
