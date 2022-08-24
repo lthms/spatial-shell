@@ -10,8 +10,9 @@ let workspace_handle (ev : Event.workspace_event) state =
         | Some workspace -> State.set_current_workspace workspace state
         | None -> state
       in
-      Lwt.return (state, true)
-  | Init | Empty | Move | Rename | Urgent | Reload -> Lwt.return (state, false)
+      Lwt.return (state, true, None)
+  | Init | Empty | Move | Rename | Urgent | Reload ->
+      Lwt.return (state, false, None)
 
 let window_handle (ev : Event.window_event) state =
   match ev.change with
@@ -20,13 +21,13 @@ let window_handle (ev : Event.window_event) state =
         State.register_window false 2 state.State.current_workspace state
           ev.container
       in
-      Lwt.return (state, true)
+      Lwt.return (state, true, None)
   | Event.Close ->
       let state = State.unregister_window state ev.container.id in
-      Lwt.return (state, true)
+      Lwt.return (state, true, None)
   | Event.Focus | Event.Title | Event.Fullscreen_mode | Event.Move | Event.Mark
   | Event.Urgent ->
-      Lwt.return (state, false)
+      Lwt.return (state, false, None)
   | Event.Floating -> (
       match ev.container.node_type with
       | Con ->
@@ -34,17 +35,17 @@ let window_handle (ev : Event.window_event) state =
             State.register_window false 2 state.State.current_workspace state
               ev.container
           in
-          Lwt.return (state, true)
+          Lwt.return (state, true, None)
       | Floating_con ->
           let state = State.unregister_window state ev.container.id in
-          Lwt.return (state, true)
-      | _ -> Lwt.return (state, false))
+          Lwt.return (state, true, Some ev.container.id)
+      | _ -> Lwt.return (state, false, None))
 
 let event_handle ev state =
   let open Lwt.Syntax in
   Lwt.try_bind
     (fun () ->
-      let* state, arrange =
+      let* state, arrange, force_focus =
         match ev with
         | From_sway (Event.Workspace ev) -> workspace_handle ev state
         | From_sway (Window ev) -> window_handle ev state
@@ -52,7 +53,8 @@ let event_handle ev state =
         | _ -> assert false
       in
       let+ () =
-        if arrange then State.arrange_current_workspace state else Lwt.return ()
+        if arrange then State.arrange_current_workspace ?force_focus state
+        else Lwt.return ()
       in
       state)
     Lwt.return

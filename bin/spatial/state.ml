@@ -79,20 +79,20 @@ let decr_maximum_visible_size workspace state =
         state.workspaces;
   }
 
-let arrange_workspace_commands ~focus workspace state =
+let arrange_workspace_commands ?force_focus workspace state =
   match Workspaces_registry.find_opt workspace state.workspaces with
-  | Some ribbon -> Ribbon.arrange_commands ~focus workspace ribbon
+  | Some ribbon -> Ribbon.arrange_commands ?force_focus workspace ribbon
   | None -> []
 
-let arrange_workspace ~focus ~socket workspace state =
+let arrange_workspace ?force_focus ~socket workspace state =
   let open Lwt.Syntax in
-  let cmds = arrange_workspace_commands ~focus workspace state in
+  let cmds = arrange_workspace_commands ?force_focus workspace state in
   let* _replies = Sway_ipc.send_command ~socket (Run_command cmds) in
   Lwt.return ()
 
-let arrange_current_workspace state =
+let arrange_current_workspace ?force_focus state =
   Sway_ipc.with_socket (fun socket ->
-      arrange_workspace ~focus:true ~socket state.current_workspace state)
+      arrange_workspace ?force_focus ~socket state.current_workspace state)
 
 let register_window default_full_view default_maximum_visible workspace state
     (tree : Node.t) =
@@ -144,7 +144,8 @@ let client_handle ev state =
                 | None -> None)
               state.workspaces;
         },
-        true )
+        true,
+        None )
   | Move_right ->
       ( {
           state with
@@ -155,14 +156,18 @@ let client_handle ev state =
                 | None -> None)
               state.workspaces;
         },
-        true )
-  | Move_window_left -> (move_window_left state.current_workspace state, true)
-  | Move_window_right -> (move_window_right state.current_workspace state, true)
-  | Toggle_full_view -> (toggle_full_view state.current_workspace state, true)
+        true,
+        None )
+  | Move_window_left ->
+      (move_window_left state.current_workspace state, true, None)
+  | Move_window_right ->
+      (move_window_right state.current_workspace state, true, None)
+  | Toggle_full_view ->
+      (toggle_full_view state.current_workspace state, true, None)
   | Incr_maximum_visible_space ->
-      (incr_maximum_visible_size state.current_workspace state, true)
+      (incr_maximum_visible_size state.current_workspace state, true, None)
   | Decr_maximum_visible_space ->
-      (decr_maximum_visible_size state.current_workspace state, true)
+      (decr_maximum_visible_size state.current_workspace state, true, None)
 
 let pp fmt state =
   Format.(
