@@ -129,12 +129,9 @@ let remove_window window ribbon =
   match ribbon.visible with
   | Some (f, l) -> (
       match remove window l with
-      | Some (idx, l) ->
-          let f' =
-            if f < idx then f
-            else if f = idx && f < List.length l then f
-            else f - 1
-          in
+      | Some (_, []) -> { ribbon with visible = None }
+      | Some (_, l) ->
+          let f' = if f < List.length l then f else f - 1 in
           { ribbon with visible = Some (f', l) }
       | None -> { ribbon with hidden = remove_if_present window ribbon.hidden })
   | None -> { ribbon with hidden = remove_if_present window ribbon.hidden }
