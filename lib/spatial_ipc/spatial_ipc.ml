@@ -141,15 +141,17 @@ let socket_from_option = function
 
 let send_command ?socket cmd =
   let open Lwt.Syntax in
-  let* socket = socket_from_option socket in
+  let* s = socket_from_option socket in
   let ((op, _) as raw) = to_raw_message cmd in
   let* () =
-    trust_spatial @@ fun () -> Socket.write_raw_message ~magic_string socket raw
+    trust_spatial @@ fun () -> Socket.write_raw_message ~magic_string s raw
   in
   let* op', payload =
-    trust_spatial @@ fun () -> Socket.read_raw_message ~magic_string socket
+    trust_spatial @@ fun () -> Socket.read_raw_message ~magic_string s
   in
   assert (op = op');
+  let* () = if Option.is_none socket then close s else Lwt.return () in
+
   Lwt.return @@ reply_of_string_exn cmd payload
 
 type ('a, 'b) handler = { handler : 'r. 'a -> 'r t -> ('b option * 'r) Lwt.t }

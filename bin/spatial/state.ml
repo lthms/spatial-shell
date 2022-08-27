@@ -103,16 +103,18 @@ let register_window default_full_view default_maximum_visible workspace state
   | _ -> state
 
 let unregister_window state window =
-  let info = Windows_registry.find window state.windows in
-  let windows = Windows_registry.unregister window state.windows in
-  let workspaces =
-    Workspaces_registry.update info.workspace
-      (function
-        | Some ribbon -> Some (Ribbon.remove_window window ribbon)
-        | None -> None)
-      state.workspaces
-  in
-  { state with windows; workspaces }
+  match Windows_registry.find_opt window state.windows with
+  | Some info ->
+      let windows = Windows_registry.unregister window state.windows in
+      let workspaces =
+        Workspaces_registry.update info.workspace
+          (function
+            | Some ribbon -> Some (Ribbon.remove_window window ribbon)
+            | None -> None)
+          state.workspaces
+      in
+      { state with windows; workspaces }
+  | None -> state
 
 let init default_full_view default_maximum_visible =
   let open Lwt.Syntax in
@@ -186,20 +188,24 @@ let client_command_handle :
           (Some res, { success = true })
       | Get_windows -> (
           let ribbon =
-            Workspaces_registry.find state.current_workspace state.workspaces
+            Workspaces_registry.find_opt state.current_workspace
+              state.workspaces
           in
           ( None,
-            match ribbon.visible with
-            | Some (f, l) ->
-                {
-                  focus = Some f;
-                  windows =
-                    List.map
-                      (fun id ->
-                        (Windows_registry.find id state.windows).app_id)
-                      (l @ ribbon.hidden);
-                }
-            | None -> { focus = None; windows = [] } ))
+            match ribbon with
+            | None -> { focus = None; windows = [] }
+            | Some ribbon -> (
+                match ribbon.visible with
+                | Some (f, l) ->
+                    {
+                      focus = Some f;
+                      windows =
+                        List.map
+                          (fun id ->
+                            (Windows_registry.find id state.windows).app_id)
+                          (l @ ribbon.hidden);
+                    }
+                | None -> { focus = None; windows = [] }) ))
        : _ * a)
 
 let pp fmt state =

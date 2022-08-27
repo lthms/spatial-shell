@@ -15,8 +15,13 @@ let workspace_handle (ev : Event.workspace_event) state =
       Lwt.return (state, false, None)
 
 let window_handle (ev : Event.window_event) state =
+  let open Lwt.Syntax in
   match ev.change with
   | Event.New ->
+      let* () =
+        Lwt_io.printf "created window %Ld (%s)\n" ev.container.id
+          (Option.value ~default:"<meh>" ev.container.app_id)
+      in
       let state =
         State.register_window false 2 state.State.current_workspace state
           ev.container
@@ -37,6 +42,10 @@ let window_handle (ev : Event.window_event) state =
           in
           Lwt.return (state, true, None)
       | Floating_con ->
+          let* () =
+            Lwt_io.printf "window %Ld (%s) turned floating\n" ev.container.id
+              (Option.value ~default:"<meh>" ev.container.app_id)
+          in
           let state = State.unregister_window state ev.container.id in
           Lwt.return (state, true, Some ev.container.id)
       | _ -> Lwt.return (state, false, None))
@@ -50,33 +59,41 @@ let event_handle ev state =
         | From_sway (Event.Workspace ev) -> workspace_handle ev state
         | From_sway (Window ev) -> window_handle ev state
         | From_sway _ -> assert false
-        | From_client socket -> (
-            let+ handle_res =
-              Spatial_ipc.(
-                handle_next_command ~socket state
-                  { handler = State.client_command_handle })
-            in
-            match handle_res with Some x -> x | _ -> (state, false, None))
+        | From_client socket ->
+            Lwt.try_bind
+              (fun () ->
+                let+ handle_res =
+                  Spatial_ipc.(
+                    handle_next_command ~socket state
+                      { handler = State.client_command_handle })
+                in
+                match handle_res with Some x -> x | _ -> (state, false, None))
+              Lwt.return
+              (fun exn ->
+                let* () = Spatial_ipc.close socket in
+                raise exn)
       in
       let+ () =
-        if arrange then State.arrange_current_workspace ?force_focus state
+        if arrange then
+          let* () = State.arrange_current_workspace ?force_focus state in
+          (* TODO: Make this more general *)
+          let* _ =
+            Lwt_process.(exec @@ shell "/usr/bin/pkill -SIGRTMIN+8 waybar")
+          in
+          Lwt.return ()
         else Lwt.return ()
       in
       state)
     Lwt.return
-    (fun _exn ->
-      let+ _ = Lwt_io.printf "something went wrong with an event\n" in
+    (fun exn ->
+      let+ _ =
+        Lwt_io.printf "something went wrong with an event:\n%s\n"
+          (Printexc.to_string exn)
+      in
       state)
 
 let merge_streams l =
-  let open Lwt.Syntax in
-  Lwt_stream.from (fun () ->
-      Lwt.choose
-        (List.map
-           (fun x ->
-             let+ x = Lwt_stream.next x in
-             Some x)
-           l))
+  Lwt_stream.from (fun () -> Lwt.pick (List.map Lwt_stream.get l))
 
 let main () =
   let open Lwt.Syntax in
@@ -94,6 +111,6 @@ let main () =
   let string = Format.asprintf "%a" State.pp state in
   let* () = Lwt_io.printf "%s\n" string in
   let* _ = Lwt_stream.fold_s event_handle stream state in
-  Lwt.return ()
+  Lwt_io.printf "one of the stream has ended\n"
 
 let () = Lwt_main.run @@ main ()
