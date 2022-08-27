@@ -1,6 +1,6 @@
 open Sway_ipc_types
 
-type input = From_sway of Event.t | From_client of Spatial_sway_ipc.socket
+type input = From_sway of Event.t | From_client of Spatial_ipc.socket
 
 let workspace_handle (ev : Event.workspace_event) state =
   match ev.change with
@@ -52,7 +52,7 @@ let event_handle ev state =
         | From_sway _ -> assert false
         | From_client socket -> (
             let+ handle_res =
-              Spatial_sway_ipc.(
+              Spatial_ipc.(
                 handle_next_command ~socket state
                   { handler = State.client_command_handle })
             in
@@ -81,7 +81,7 @@ let merge_streams l =
 let main () =
   let open Lwt.Syntax in
   let* stream_sway = Sway_ipc.subscribe [ Window; Workspace ] in
-  let* stream_client = Spatial_sway_ipc.create_server () in
+  let* stream_client = Spatial_ipc.create_server () in
   let stream =
     merge_streams
       [

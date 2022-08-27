@@ -57,7 +57,7 @@ let command_of_string str =
 let command_of_string_exn str =
   match command_of_string str with
   | Some x -> x
-  | None -> raise (Invalid_argument "Spatial_sway_ipc.command_of_string_exn")
+  | None -> raise (Invalid_argument "Spatial_ipc.command_of_string_exn")
 
 let command_to_string = function
   | Focus dir -> Format.sprintf "focus %s" (direction_to_string dir)

@@ -132,11 +132,10 @@ let init default_full_view default_maximum_visible =
 
 let client_command_handle :
     type a.
-    state ->
-    a Spatial_sway_ipc.t ->
-    ((state * bool * int64 option) option * a) Lwt.t =
+    state -> a Spatial_ipc.t -> ((state * bool * int64 option) option * a) Lwt.t
+    =
  fun state cmd ->
-  let open Spatial_sway_ipc in
+  let open Spatial_ipc in
   Lwt.return
   @@ (match cmd with
       | Run_command cmd ->

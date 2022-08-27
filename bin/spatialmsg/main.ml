@@ -1,4 +1,4 @@
-open Spatial_sway_ipc
+open Spatial_ipc
 
 let () =
   let cmd = Sys.argv.(1) |> command_of_string_exn in
