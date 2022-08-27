@@ -17,9 +17,10 @@ val close : socket -> unit Lwt.t
 (** [close socket] puts an end to a connection with Sway. *)
 
 val with_socket : (socket -> 'a Lwt.t) -> 'a Lwt.t
-(** [with_socket k] establishes a connection with Sway, hands over the
-    socket to the continuation [k], and takes care of closing the
-    connection with Sway prior to returning the result. *)
+(** [with_socket k] establishes a bi-connection with Sway, hands over
+    the socket to the continuation [k], and takes care of closing the
+    connection prior to returning the result, even in case of an
+    exception. *)
 
 val send_command : ?socket:socket -> 'a Sway_ipc_types.Message.t -> 'a Lwt.t
 (** [send_command ?socket msg] sends the command [msg] to Sway (by

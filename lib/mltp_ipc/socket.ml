@@ -5,6 +5,8 @@
 type socket = Lwt_io.input_channel * Lwt_io.output_channel * Lwt_unix.file_descr
 type error = Bad_magic_string of string | Connection_closed
 
+let ( let*! ) x k = Lwt.bind x k
+
 let connect socket_path : socket Lwt.t =
   let open Lwt.Syntax in
   let socket = Lwt_unix.socket PF_UNIX SOCK_STREAM 0 in
@@ -13,8 +15,20 @@ let connect socket_path : socket Lwt.t =
   let socket_out = Lwt_io.of_fd ~mode:Output socket in
   (socket_in, socket_out, socket)
 
-let ( let*! ) x k = Lwt.bind x k
 let close (_, _, s) = Lwt_unix.close s
+
+let with_socket socket_path f =
+  let open Lwt.Syntax in
+  let* socket = connect socket_path in
+  Lwt.try_bind
+    (fun () ->
+      let* res = f socket in
+      let* () = close socket in
+      Lwt.return res)
+    Lwt.return
+    (fun exn ->
+      let* () = close socket in
+      raise exn)
 
 let catch_end_of_file f =
   Lwt.try_bind f Lwt_result.return @@ function

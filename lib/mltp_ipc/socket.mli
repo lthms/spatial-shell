@@ -19,6 +19,12 @@ val connect : string -> socket Lwt.t
 val close : socket -> unit Lwt.t
 (** Close a bi-directional connection with a peer. *)
 
+val with_socket : string -> (socket -> 'a Lwt.t) -> 'a Lwt.t
+(** [with_socket path k] establishes a bi-connection with a peer using
+    the UNIX socket located at [path], hands over the socket to the
+    continuation [k], and takes care of closing the connection prior
+    to returning the result, even in case of an exception. *)
+
 type error =
   | Bad_magic_string of string
       (** When trying to read a MTLP message, the magic string was not

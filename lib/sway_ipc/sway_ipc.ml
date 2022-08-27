@@ -24,18 +24,7 @@ let trust_sway f =
   let* x = f () in
   match x with Ok x -> Lwt.return x | Error e -> raise (Sway_ipc_error e)
 
-let with_socket f =
-  let open Lwt.Syntax in
-  let* socket = connect () in
-  Lwt.try_bind
-    (fun () ->
-      let* res = f socket in
-      let* () = Socket.close socket in
-      Lwt.return res)
-    Lwt.return
-    (fun exn ->
-      let* () = Socket.close socket in
-      raise exn)
+let with_socket f = Socket.with_socket (sway_sock_path ()) f
 
 let socket_from_option = function
   | Some socket -> Lwt.return socket
