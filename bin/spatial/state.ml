@@ -183,7 +183,23 @@ let client_command_handle :
                   true,
                   None )
           in
-          (Some res, ())
+          (Some res, { success = true })
+      | Get_windows -> (
+          let ribbon =
+            Workspaces_registry.find state.current_workspace state.workspaces
+          in
+          ( None,
+            match ribbon.visible with
+            | Some (f, l) ->
+                {
+                  focus = Some f;
+                  windows =
+                    List.map
+                      (fun id ->
+                        (Windows_registry.find id state.windows).app_id)
+                      (l @ ribbon.hidden);
+                }
+            | None -> { focus = None; windows = [] } ))
        : _ * a)
 
 let pp fmt state =

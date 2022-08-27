@@ -65,14 +65,44 @@ let command_to_string = function
   | Maximize switch -> Format.sprintf "maximize %s" (switch_to_string switch)
   | Split op -> Format.sprintf "split %s" (operation_to_string op)
 
-type 'a t = Run_command : command -> unit t
+type run_command_reply = { success : bool }
+
+let run_command_reply_encoding =
+  let open Data_encoding in
+  conv
+    (fun { success } -> success)
+    (fun success -> { success })
+    (obj1 (req "success" bool))
+
+type get_windows_reply = { focus : int option; windows : string list }
+
+let get_windows_reply_encoding : get_windows_reply Data_encoding.t =
+  let open Data_encoding in
+  conv
+    (fun { focus; windows } -> (focus, windows))
+    (fun (focus, windows) -> { focus; windows })
+    (obj2 (opt "focus" int31) (req "windows" @@ list string))
+
+type 'a t =
+  | Run_command : command -> run_command_reply t
+  | Get_windows : get_windows_reply t
+
+let reply_encoding : type a. a t -> a Data_encoding.t = function
+  | Run_command _ -> run_command_reply_encoding
+  | Get_windows -> get_windows_reply_encoding
 
 let reply_to_string : type a. a t -> a -> string =
- fun cmd reply -> match (cmd, reply) with Run_command _, () -> ""
+ fun cmd reply ->
+  Data_encoding.Json.(to_string (construct (reply_encoding cmd) reply))
 
 let reply_of_string : type a. a t -> string -> a option =
  fun cmd reply ->
-  match (cmd, reply) with Run_command _, "" -> Some () | _, _ -> None
+  let open Data_encoding.Json in
+  try
+    match from_string reply with
+    | Ok json -> Some (destruct (reply_encoding cmd) json)
+    | _ -> None
+  with _ -> None
 
 let reply_of_string_exn cmd reply =
   match reply_of_string cmd reply with
@@ -81,12 +111,14 @@ let reply_of_string_exn cmd reply =
 
 let to_raw_message : type a. a t -> Raw_message.t = function
   | Run_command cmd -> (0l, command_to_string cmd)
+  | Get_windows -> (1l, "")
 
 type packed = Packed : 'a t -> packed
 
 let of_raw_message (op, payload) =
   match op with
   | 0l -> (fun x -> Packed (Run_command x)) <$> command_of_string payload
+  | 1l -> Some (Packed Get_windows)
   | _ -> None
 
 exception Spatial_ipc_error of Socket.error

@@ -19,7 +19,13 @@ val command_of_string : string -> command option
 val command_of_string_exn : string -> command
 (** @raise [Invalid_argument] *)
 
-type 'a t = Run_command : command -> unit t
+type run_command_reply = { success : bool }
+type get_windows_reply = { focus : int option; windows : string list }
+
+type 'a t =
+  | Run_command : command -> run_command_reply t
+  | Get_windows : get_windows_reply t
+
 type socket
 
 val connect : unit -> socket Lwt.t
