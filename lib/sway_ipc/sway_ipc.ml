@@ -5,6 +5,8 @@
 open Sway_ipc_types
 open Mltp_ipc
 
+exception Sway_ipc_error of Socket.error
+
 let magic_string = "i3-ipc"
 
 let sway_sock_path () =
@@ -14,22 +16,26 @@ let sway_sock_path () =
 
 type socket = Socket.socket
 
-let connect () : socket Lwt.t =
-  let open Lwt.Syntax in
-  let socket = Lwt_unix.socket PF_UNIX SOCK_STREAM 0 in
-  let+ () = Lwt_unix.connect socket (ADDR_UNIX (sway_sock_path ())) in
-  let socket_in = Lwt_io.of_fd ~mode:Input socket in
-  let socket_out = Lwt_io.of_fd ~mode:Output socket in
-  (socket_in, socket_out, socket)
-
+let connect () : socket Lwt.t = Socket.connect (sway_sock_path ())
 let close socket = Socket.close socket
+
+let trust_sway f =
+  let open Lwt.Syntax in
+  let* x = f () in
+  match x with Ok x -> Lwt.return x | Error e -> raise (Sway_ipc_error e)
 
 let with_socket f =
   let open Lwt.Syntax in
   let* socket = connect () in
-  let* res = f socket in
-  let+ () = Socket.close socket in
-  res
+  Lwt.try_bind
+    (fun () ->
+      let* res = f socket in
+      let* () = Socket.close socket in
+      Lwt.return res)
+    Lwt.return
+    (fun exn ->
+      let* () = Socket.close socket in
+      raise exn)
 
 let socket_from_option = function
   | Some socket -> Lwt.return socket
@@ -39,8 +45,12 @@ let send_command ?socket cmd =
   let open Lwt.Syntax in
   let* socket = socket_from_option socket in
   let ((op, _) as raw) = Message.to_raw_message cmd in
-  let* () = Socket.write_raw_message ~magic_string socket raw in
-  let* op', payload = Socket.read_raw_message ~magic_string socket in
+  let* () =
+    trust_sway @@ fun () -> Socket.write_raw_message ~magic_string socket raw
+  in
+  let* op', payload =
+    trust_sway @@ fun () -> Socket.read_raw_message ~magic_string socket
+  in
   assert (op = op');
   Lwt.return @@ Json_decoder.of_string_exn (Message.reply_decoder cmd) payload
 
@@ -50,13 +60,16 @@ let subscribe ?socket events =
   let+ { success } = send_command ~socket (Subscribe events) in
   if success then
     Lwt_stream.from (fun () ->
+        let open Lwt.Syntax in
         let+ ev =
           Socket.read_next_raw_message ~magic_string socket (fun (code, _) ->
               List.exists
                 (fun ev_type -> ev_type = Event.event_type_of_code code)
                 events)
         in
-        Some (Event.event_of_raw_message ev))
+        match ev with
+        | Ok ev -> Some (Event.event_of_raw_message ev)
+        | Error _ -> None)
   else failwith "Something went wrong"
 
 let get_tree ?socket () = send_command ?socket Get_tree

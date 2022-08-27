@@ -5,6 +5,8 @@
 type socket
 (** A socket to interact with Sway. *)
 
+exception Sway_ipc_error of Mltp_ipc.Socket.error
+
 val connect : unit -> socket Lwt.t
 (** [connect ()] establishes a connection with Sway. This connection
     can be ended by using {!close}.
