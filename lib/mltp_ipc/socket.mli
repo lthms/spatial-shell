@@ -61,3 +61,5 @@ val read_next_raw_message :
 val write_raw_message :
   magic_string:string -> socket -> Raw_message.t -> (unit, error) result Lwt.t
 (** This function may fail with [Connection_closed]. *)
+
+val create_server : string -> socket Lwt_stream.t Lwt.t

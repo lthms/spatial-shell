@@ -1,3 +1,4 @@
 (library
  (name spatial_sway_ipc)
- (public_name spatial-sway.ipc))
+ (public_name spatial-sway.ipc)
+ (libraries mltp-ipc))

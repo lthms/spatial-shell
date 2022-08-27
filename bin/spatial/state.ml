@@ -130,44 +130,62 @@ let init default_full_view default_maximum_visible =
       | None -> state)
     (empty cw.name) workspaces
 
-let client_handle ev state =
+let client_command_handle :
+    type a.
+    state ->
+    a Spatial_sway_ipc.t ->
+    ((state * bool * int64 option) option * a) Lwt.t =
+ fun state cmd ->
+  let open Spatial_sway_ipc in
   Lwt.return
-  @@
-  match ev with
-  | Spatial_sway_ipc.Move_left ->
-      ( {
-          state with
-          workspaces =
-            Workspaces_registry.update state.current_workspace
-              (function
-                | Some ribbon -> Some (Ribbon.move_focus_left ribbon)
-                | None -> None)
-              state.workspaces;
-        },
-        true,
-        None )
-  | Move_right ->
-      ( {
-          state with
-          workspaces =
-            Workspaces_registry.update state.current_workspace
-              (function
-                | Some ribbon -> Some (Ribbon.move_focus_right ribbon)
-                | None -> None)
-              state.workspaces;
-        },
-        true,
-        None )
-  | Move_window_left ->
-      (move_window_left state.current_workspace state, true, None)
-  | Move_window_right ->
-      (move_window_right state.current_workspace state, true, None)
-  | Toggle_full_view ->
-      (toggle_full_view state.current_workspace state, true, None)
-  | Incr_maximum_visible_space ->
-      (incr_maximum_visible_size state.current_workspace state, true, None)
-  | Decr_maximum_visible_space ->
-      (decr_maximum_visible_size state.current_workspace state, true, None)
+  @@ (match cmd with
+      | Run_command cmd ->
+          let res =
+            match cmd with
+            | Focus Left ->
+                ( {
+                    state with
+                    workspaces =
+                      Workspaces_registry.update state.current_workspace
+                        (function
+                          | Some ribbon -> Some (Ribbon.move_focus_left ribbon)
+                          | None -> None)
+                        state.workspaces;
+                  },
+                  true,
+                  None )
+            | Focus Right ->
+                ( {
+                    state with
+                    workspaces =
+                      Workspaces_registry.update state.current_workspace
+                        (function
+                          | Some ribbon -> Some (Ribbon.move_focus_right ribbon)
+                          | None -> None)
+                        state.workspaces;
+                  },
+                  true,
+                  None )
+            | Move Left ->
+                (move_window_left state.current_workspace state, true, None)
+            | Move Right ->
+                (move_window_right state.current_workspace state, true, None)
+            | Maximize Toggle ->
+                (toggle_full_view state.current_workspace state, true, None)
+            | Maximize _ ->
+                (* TODO: implement [On] and [Off] cases *)
+                (state, false, None)
+            | Split Incr ->
+                ( incr_maximum_visible_size state.current_workspace state,
+                  true,
+                  None )
+            | Split Decr ->
+                ( decr_maximum_visible_size state.current_workspace state,
+                  true,
+                  None )
+          in
+          (Some res, ())
+       : _ * a)
 
 let pp fmt state =
   Format.(

@@ -62,11 +62,30 @@ let read_raw_message ~magic_string socket =
   let size = Raw_message.string_to_int32 msg in
   let* msg = read_all ~count:4 socket in
   let msg_type = Raw_message.string_to_int32 msg in
-  let* payload = read_all ~count:(Int32.to_int size) socket in
-  Lwt_result.return (msg_type, payload)
+  if size <> 0l then
+    let* payload = read_all ~count:(Int32.to_int size) socket in
+    Lwt_result.return (msg_type, payload)
+  else Lwt_result.return (msg_type, "")
 
 let rec read_next_raw_message ~magic_string socket f =
   let open Lwt_result.Syntax in
   let* raw = read_raw_message ~magic_string socket in
   if f raw then Lwt_result.return raw
   else read_next_raw_message ~magic_string socket f
+
+let socket_handler server () =
+  let open Lwt.Syntax in
+  let+ socket, _ = Lwt_unix.accept server in
+  let socket_in = Lwt_io.of_fd ~mode:Input socket in
+  let socket_out = Lwt_io.of_fd ~mode:Output socket in
+  Some (socket_in, socket_out, socket)
+
+let create_server path =
+  let open Lwt.Syntax in
+  let socket = Lwt_unix.socket PF_UNIX SOCK_STREAM 0 in
+  let* socket_exists = Lwt_unix.file_exists path in
+  let* () = if socket_exists then Lwt_unix.unlink path else Lwt.return () in
+  let sockaddr = Lwt_unix.ADDR_UNIX path in
+  let+ () = Lwt_unix.bind socket sockaddr in
+  let () = Lwt_unix.listen socket 100 in
+  Lwt_stream.from (socket_handler socket)
