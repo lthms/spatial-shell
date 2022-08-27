@@ -88,6 +88,8 @@ let () =
       ]
   in
 
+  Clap.close ();
+
   let cmd = select_message command in
 
   Lwt_main.run (main cmd)
