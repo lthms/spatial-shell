@@ -27,7 +27,7 @@ type _ t =
   | Get_tree : Node.t t
   | Get_outputs : Output.t list t
 
-let to_raw_message : type reply. reply t -> Raw_message.t = function
+let to_raw_message : type reply. reply t -> Mltp_ipc.Raw_message.t = function
   | Run_command cmds ->
       ( 0l,
         Format.(
