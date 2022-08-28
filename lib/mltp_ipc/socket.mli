@@ -10,56 +10,48 @@
         {li A 32-bit integer representing the {b L}ength of the payload}
         {li The {b P}ayload itself}} *)
 
-type socket
+type socket = Unix.file_descr
 (** A socket to communicate with a peer using the so-called MTLP protocol. *)
 
-val connect : string -> socket Lwt.t
+val connect : string -> socket
 (** Establish a bi-directional connection with a peer. *)
 
-val close : socket -> unit Lwt.t
+val close : socket -> unit
 (** Close a bi-directional connection with a peer. *)
 
-val with_socket : string -> (socket -> 'a Lwt.t) -> 'a Lwt.t
+val with_socket : string -> (socket -> 'a) -> 'a
 (** [with_socket path k] establishes a bi-connection with a peer using
     the UNIX socket located at [path], hands over the socket to the
     continuation [k], and takes care of closing the connection prior
     to returning the result, even in case of an exception. *)
 
-type error =
-  | Bad_magic_string of string
-      (** When trying to read a MTLP message, the magic string was not
-          correct. *)
-  | Connection_closed
-      (** When trying to receive from or send a message to a closed
-          bi-directional connection. *)
+exception Bad_magic_string of string
+(** When trying to read a MTLP message, the magic string was not
+    correct. *)
 
-val read_raw_message :
-  magic_string:string -> socket -> (Raw_message.t, error) result Lwt.t
+exception Connection_closed
+(** When trying to receive from or send a message to a closed
+    bi-directional connection. *)
+
+val read_raw_message : magic_string:string -> socket -> Raw_message.t
 (** [read_raw_message ~magic_string socket] reads a MTLP
     message from [socket].
 
-    This function may fail with the following errors:
-
-    {ul {li [Bad_magic_string] (closes [socket] when it happens)}
-        {li [Connection_closed]}} *)
+    @raise Bad_magic_string (closes [socket] when it happens)
+    @raise Connection_closed *)
 
 val read_next_raw_message :
-  magic_string:string ->
-  socket ->
-  (Raw_message.t -> bool) ->
-  (Raw_message.t, error) result Lwt.t
+  magic_string:string -> socket -> (Raw_message.t -> bool) -> Raw_message.t
 (** [read_next_raw_message ~magic_string socket f] returns the next
     raw message received by [socket] which satisfies [f]’s
     conditions. Messages that don’t satisfy [f]’s conditions are
     ignored.
 
-    This function may fail with the following errors:
+    @raise Bad_magic_string (closes [socket] when it happens)
+    @raise Connection_closed *)
 
-    {ul {li [Bad_magic_string] (closes [socket] when it happens)}
-        {li [Connection_closed]}} *)
+val write_raw_message : magic_string:string -> socket -> Raw_message.t -> unit
+(** @raise Connection_closed *)
 
-val write_raw_message :
-  magic_string:string -> socket -> Raw_message.t -> (unit, error) result Lwt.t
-(** This function may fail with [Connection_closed]. *)
-
-val create_server : string -> socket Lwt_stream.t Lwt.t
+val create_server : string -> socket
+val accept : socket -> socket

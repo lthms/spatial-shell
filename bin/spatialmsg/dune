@@ -1,3 +1,3 @@
 (executable
  (name main)
- (libraries mltp-ipc spatial-sway.ipc lwt lwt.unix clap))
+ (libraries mltp-ipc spatial-sway.ipc clap unix))

@@ -85,10 +85,9 @@ let arrange_workspace_commands ?force_focus workspace state =
   | None -> []
 
 let arrange_workspace ?force_focus ~socket workspace state =
-  let open Lwt.Syntax in
   let cmds = arrange_workspace_commands ?force_focus workspace state in
-  let* _replies = Sway_ipc.send_command ~socket (Run_command cmds) in
-  Lwt.return ()
+  let _replies = Sway_ipc.send_command ~socket (Run_command cmds) in
+  ()
 
 let arrange_current_workspace ?force_focus state =
   Sway_ipc.with_socket (fun socket ->
@@ -117,9 +116,8 @@ let unregister_window state window =
   | None -> state
 
 let init default_full_view default_maximum_visible =
-  let open Lwt.Syntax in
-  let* cw = Sway_ipc.get_current_workspace () in
-  let+ tree = Sway_ipc.get_tree () in
+  let cw = Sway_ipc.get_current_workspace () in
+  let tree = Sway_ipc.get_tree () in
   let workspaces = Node.filter (fun x -> x.node_type = Workspace) tree in
   List.fold_left
     (fun state workspace ->
@@ -133,80 +131,76 @@ let init default_full_view default_maximum_visible =
     (empty cw.name) workspaces
 
 let client_command_handle :
-    type a.
-    state -> a Spatial_ipc.t -> ((state * bool * int64 option) option * a) Lwt.t
-    =
+    type a. state -> a Spatial_ipc.t -> (state * bool * int64 option) * a =
  fun state cmd ->
   let open Spatial_ipc in
-  Lwt.return
-  @@ (match cmd with
-      | Run_command cmd ->
-          let res =
-            match cmd with
-            | Focus Left ->
-                ( {
-                    state with
-                    workspaces =
-                      Workspaces_registry.update state.current_workspace
-                        (function
-                          | Some ribbon -> Some (Ribbon.move_focus_left ribbon)
-                          | None -> None)
-                        state.workspaces;
-                  },
-                  true,
-                  None )
-            | Focus Right ->
-                ( {
-                    state with
-                    workspaces =
-                      Workspaces_registry.update state.current_workspace
-                        (function
-                          | Some ribbon -> Some (Ribbon.move_focus_right ribbon)
-                          | None -> None)
-                        state.workspaces;
-                  },
-                  true,
-                  None )
-            | Move Left ->
-                (move_window_left state.current_workspace state, true, None)
-            | Move Right ->
-                (move_window_right state.current_workspace state, true, None)
-            | Maximize Toggle ->
-                (toggle_full_view state.current_workspace state, true, None)
-            | Maximize _ ->
-                (* TODO: implement [On] and [Off] cases *)
-                (state, false, None)
-            | Split Incr ->
-                ( incr_maximum_visible_size state.current_workspace state,
-                  true,
-                  None )
-            | Split Decr ->
-                ( decr_maximum_visible_size state.current_workspace state,
-                  true,
-                  None )
-          in
-          (Some res, { success = true })
-      | Get_windows -> (
-          let ribbon =
-            Workspaces_registry.find_opt state.current_workspace
-              state.workspaces
-          in
-          ( None,
-            match ribbon with
-            | None -> { focus = None; windows = [] }
-            | Some ribbon -> (
-                match ribbon.visible with
-                | Some (f, l) ->
-                    {
-                      focus = Some f;
-                      windows =
-                        List.map
-                          (fun id ->
-                            (Windows_registry.find id state.windows).app_id)
-                          (l @ ribbon.hidden);
-                    }
-                | None -> { focus = None; windows = [] }) ))
-       : _ * a)
+  (match cmd with
+   | Run_command cmd ->
+       let res =
+         match cmd with
+         | Focus Left ->
+             ( {
+                 state with
+                 workspaces =
+                   Workspaces_registry.update state.current_workspace
+                     (function
+                       | Some ribbon -> Some (Ribbon.move_focus_left ribbon)
+                       | None -> None)
+                     state.workspaces;
+               },
+               true,
+               None )
+         | Focus Right ->
+             ( {
+                 state with
+                 workspaces =
+                   Workspaces_registry.update state.current_workspace
+                     (function
+                       | Some ribbon -> Some (Ribbon.move_focus_right ribbon)
+                       | None -> None)
+                     state.workspaces;
+               },
+               true,
+               None )
+         | Move Left ->
+             (move_window_left state.current_workspace state, true, None)
+         | Move Right ->
+             (move_window_right state.current_workspace state, true, None)
+         | Maximize Toggle ->
+             (toggle_full_view state.current_workspace state, true, None)
+         | Maximize _ ->
+             (* TODO: implement [On] and [Off] cases *)
+             (state, false, None)
+         | Split Incr ->
+             ( incr_maximum_visible_size state.current_workspace state,
+               true,
+               None )
+         | Split Decr ->
+             ( decr_maximum_visible_size state.current_workspace state,
+               true,
+               None )
+       in
+       (res, { success = true })
+   | Get_windows -> (
+       let ribbon =
+         Workspaces_registry.find_opt state.current_workspace state.workspaces
+       in
+       ( (state, false, None),
+         match ribbon with
+         | None -> { focus = None; windows = [] }
+         | Some ribbon -> (
+             match ribbon.visible with
+             | Some (f, l) ->
+                 {
+                   focus = Some f;
+                   windows =
+                     List.map
+                       (fun id ->
+                         (Windows_registry.find id state.windows).app_id)
+                       (l @ ribbon.hidden);
+                 }
+             | None -> { focus = None; windows = [] }) ))
+    : _ * a)
 
 let pp fmt state =
   Format.(

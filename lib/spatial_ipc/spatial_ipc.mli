@@ -26,16 +26,15 @@ type 'a t =
   | Run_command : command -> run_command_reply t
   | Get_windows : get_windows_reply t
 
-type socket
+type socket = Unix.file_descr
 
-val connect : unit -> socket Lwt.t
-val close : socket -> unit Lwt.t
-val with_socket : (socket -> 'a Lwt.t) -> 'a Lwt.t
-val send_command : ?socket:socket -> 'a t -> 'a Lwt.t
+val connect : unit -> socket
+val close : socket -> unit
+val with_socket : ?socket:socket -> (socket -> 'a) -> 'a
+val send_command : ?socket:socket -> 'a t -> 'a
 
-type ('a, 'b) handler = { handler : 'r. 'a -> 'r t -> ('b option * 'r) Lwt.t }
+type ('a, 'b) handler = { handler : 'r. 'a -> 'r t -> 'b * 'r }
 
-val handle_next_command :
-  socket:socket -> 'u -> ('u, 'v) handler -> 'v option Lwt.t
-
-val create_server : unit -> socket Lwt_stream.t Lwt.t
+val handle_next_command : socket:socket -> 'u -> ('u, 'v) handler -> 'v option
+val create_server : unit -> socket
+val accept : socket -> socket

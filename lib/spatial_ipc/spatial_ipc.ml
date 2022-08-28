@@ -121,60 +121,38 @@ let of_raw_message (op, payload) =
   | 1l -> Some (Packed Get_windows)
   | _ -> None
 
-exception Spatial_ipc_error of Socket.error
-
 type socket = Socket.socket
 
-let connect () : socket Lwt.t = Socket.connect socket_path
+let connect () : socket = Socket.connect socket_path
 let close socket = Socket.close socket
 
-let trust_spatial f =
-  let open Lwt.Syntax in
-  let* x = f () in
-  match x with Ok x -> Lwt.return x | Error e -> raise (Spatial_ipc_error e)
-
-let with_socket f = Socket.with_socket socket_path f
-
-let socket_from_option = function
-  | Some socket -> Lwt.return socket
-  | None -> connect ()
+let with_socket ?socket f =
+  match socket with
+  | Some socket -> f socket
+  | None -> Socket.with_socket socket_path f
 
 let send_command ?socket cmd =
-  let open Lwt.Syntax in
-  let* s = socket_from_option socket in
+  with_socket ?socket @@ fun socket ->
   let ((op, _) as raw) = to_raw_message cmd in
-  let* () =
-    trust_spatial @@ fun () -> Socket.write_raw_message ~magic_string s raw
-  in
-  let* op', payload =
-    trust_spatial @@ fun () -> Socket.read_raw_message ~magic_string s
-  in
+  Socket.write_raw_message ~magic_string socket raw;
+  let op', payload = Socket.read_raw_message ~magic_string socket in
   assert (op = op');
-  let* () = if Option.is_none socket then close s else Lwt.return () in
+  reply_of_string_exn cmd payload
 
-  Lwt.return @@ reply_of_string_exn cmd payload
-
-type ('a, 'b) handler = { handler : 'r. 'a -> 'r t -> ('b option * 'r) Lwt.t }
+type ('a, 'b) handler = { handler : 'r. 'a -> 'r t -> 'b * 'r }
 
 let handle_next_command ~socket input { handler } =
-  let open Lwt.Syntax in
-  let* res = Socket.read_raw_message ~magic_string socket in
-  match res with
-  | Ok ((op, _) as raw) -> (
-      let cmd = of_raw_message raw in
-      match cmd with
-      | Some (Packed cmd) ->
-          let* output, reply = handler input cmd in
-          let* _ =
-            Socket.write_raw_message ~magic_string socket
-              (op, reply_to_string cmd reply)
-          in
-          Lwt.return output
-      | None ->
-          let* _ = Socket.write_raw_message ~magic_string socket (op, "") in
-          Lwt.return None)
-  | Error _ ->
-      let* _ = Socket.write_raw_message ~magic_string socket (-1l, "") in
-      Lwt.return None
+  let ((op, _) as raw) = Socket.read_raw_message ~magic_string socket in
+  let cmd = of_raw_message raw in
+  match cmd with
+  | Some (Packed cmd) ->
+      let output, reply = handler input cmd in
+      Socket.write_raw_message ~magic_string socket
+        (op, reply_to_string cmd reply);
+      Some output
+  | None ->
+      Socket.write_raw_message ~magic_string socket (op, "");
+      None
 
 let create_server () = Socket.create_server socket_path
+let accept = Socket.accept

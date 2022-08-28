@@ -11,13 +11,13 @@ let () =
       Clap.close ();
 
       let cmd = command_of_string_exn cmd in
-      let { success } = Lwt_main.run (send_command (Run_command cmd)) in
+      let { success } = send_command (Run_command cmd) in
       if not success then exit 1
   | "get_windows" -> (
       let cmd = Clap.optional_int ~placeholder:"INDEX" () in
       Clap.close ();
 
-      let reply = Lwt_main.run (send_command Get_windows) in
+      let reply = send_command Get_windows in
 
       match (cmd, reply.focus) with
       | Some idx, Some focus when idx < List.length reply.windows ->

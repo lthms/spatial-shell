@@ -169,7 +169,7 @@ let split_visible ribbon =
   let rec split_visible acc f = function
     | x :: rst when f = 0 -> Some (List.rev acc, x, rst)
     | x :: rst -> split_visible (x :: acc) (f - 1) rst
-    | [] -> None
+    | [] -> raise (Invalid_argument "Ribbon.split_visible")
   in
   match ribbon.visible with None -> None | Some (f, l) -> split_visible [] f l
 
@@ -244,10 +244,12 @@ let move_window_right ribbon =
               match pop_front left with
               | Some (x, left) ->
                   (* Case:   [|a b {f}|]
-                     Result: [|b a {f}|] *)
+                     Result: [|b a {f}|]
+                     In this case, focus remains in the same place, so
+                     [f - 1] *)
                   {
                     ribbon with
-                    visible = Some (f, push_back x left @ [ focus ] @ right);
+                    visible = Some (f - 1, push_back x left @ [ focus ] @ right);
                   }
               | None ->
                   (* Case:   [|{f}|]
