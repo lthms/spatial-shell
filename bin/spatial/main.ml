@@ -44,55 +44,57 @@ let with_nonblock_socket socket f =
   Unix.set_nonblock socket;
   res
 
+let poll_fold_ready poll acc f =
+  let ref_acc = ref acc in
+  Poll.iter_ready poll ~f:(fun fd event -> ref_acc := f !ref_acc fd event);
+  !ref_acc
+
 let rec go poll state sway_socket server_socket =
   try
     match Poll.wait poll (Poll.Timeout.after 10_000_000_000_000L) with
     | `Timeout -> go poll state sway_socket server_socket
     | `Ok ->
-        let ref_state = ref state in
-        let ref_arrange = ref false in
-        let ref_force_focus = ref None in
-        Poll.iter_ready poll ~f:(fun fd _event ->
-            try
-              let state, arrange, force_focus =
-                if fd = sway_socket then
-                  with_nonblock_socket fd @@ fun () ->
-                  match Sway_ipc.read_event fd with
-                  | Workspace ev -> workspace_handle ev !ref_state
-                  | Window ev -> window_handle ev !ref_state
-                  | _ -> assert false
-                else if fd = server_socket then (
-                  let client = Spatial_ipc.accept fd in
-                  Unix.set_nonblock client;
-                  Poll.(set poll client Event.read);
-                  (!ref_state, false, None))
-                else
-                  with_nonblock_socket fd @@ fun () ->
-                  match
-                    Spatial_ipc.handle_next_command ~socket:fd !ref_state
-                      { handler = State.client_command_handle }
-                  with
-                  | Some res -> res
-                  | None -> (!ref_state, false, None)
-              in
-              Poll.(set poll fd Event.read);
-              ref_arrange := arrange || !ref_arrange;
-              ref_state := state;
-              ref_force_focus := force_focus
-            with
-            | Mltp_ipc.Socket.Connection_closed
-            when fd <> sway_socket && fd <> server_socket
-            ->
-              Unix.set_nonblock fd;
-              Poll.(set poll fd Event.none);
-              Unix.close fd);
-        if !ref_arrange then (
-          State.arrange_current_workspace ?force_focus:!ref_force_focus
-            !ref_state;
+        let state, arrange, force_focus =
+          poll_fold_ready poll (state, false, None)
+            (fun (state, arrange, force_focus) fd _event ->
+              try
+                let res =
+                  if fd = sway_socket then
+                    with_nonblock_socket fd @@ fun () ->
+                    match Sway_ipc.read_event fd with
+                    | Workspace ev -> workspace_handle ev state
+                    | Window ev -> window_handle ev state
+                    | _ -> assert false
+                  else if fd = server_socket then (
+                    let client = Spatial_ipc.accept fd in
+                    Unix.set_nonblock client;
+                    Poll.(set poll client Event.read);
+                    (state, arrange, force_focus))
+                  else
+                    with_nonblock_socket fd @@ fun () ->
+                    match
+                      Spatial_ipc.handle_next_command ~socket:fd state
+                        { handler = State.client_command_handle }
+                    with
+                    | Some res -> res
+                    | None -> (state, arrange, force_focus)
+                in
+                Poll.(set poll fd Event.read);
+                res
+              with
+              | Mltp_ipc.Socket.Connection_closed
+              when fd <> sway_socket && fd <> server_socket
+              ->
+                Poll.(set poll fd Event.none);
+                Unix.close fd;
+                (state, arrange, force_focus))
+        in
+        if arrange then (
+          State.arrange_current_workspace ?force_focus state;
           (* TODO: Be more configurable about that *)
           ignore (Unix.system "/usr/bin/pkill -SIGRTMIN+8 waybar"));
         Poll.clear poll;
-        go poll !ref_state sway_socket server_socket
+        go poll state sway_socket server_socket
   with Unix.Unix_error (EINTR, _, _) ->
     go poll state sway_socket server_socket
 
