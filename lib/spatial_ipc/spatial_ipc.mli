@@ -4,13 +4,20 @@
 
 val socket_path : string
 
-type direction = Left | Right
+type focus = Focus_kind
+type move = Move_kind
+
+type 'kind target =
+  | Prev : 'kind target
+  | Next : 'kind target
+  | Index : int -> focus target
+
 type switch = On | Off | Toggle
 type operation = Incr | Decr
 
 type command =
-  | Focus of direction
-  | Move of direction
+  | Focus of focus target
+  | Move of move target
   | Maximize of switch
   | Split of operation
 

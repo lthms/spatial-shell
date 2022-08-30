@@ -7,14 +7,30 @@ open Mltp_ipc
 let socket_path = "/tmp/spatial-sway.socket"
 let magic_string = "spatial-ipc"
 
-type direction = Left | Right
+type focus = Focus_kind
+type move = Move_kind
 
-let direction_of_string_opt = function
-  | "left" -> Some Left
-  | "right" -> Some Right
-  | _ -> None
+type 'kind target =
+  | Prev : 'kind target
+  | Next : 'kind target
+  | Index : int -> focus target
 
-let direction_to_string = function Left -> "left" | Right -> "right"
+let restrict_move_target : 'k target -> move target option = function
+  | Index _ -> None
+  | Next -> Some Next
+  | Prev -> Some Prev
+
+let target_of_string_opt = function
+  | "prev" -> Some Prev
+  | "next" -> Some Next
+  | x ->
+      Option.bind (int_of_string_opt x) @@ fun x ->
+      if 0 <= x then Some (Index x) else None
+
+let target_to_string : type kind. kind target -> string = function
+  | Prev -> "prev"
+  | Next -> "next"
+  | Index x -> string_of_int x
 
 type switch = On | Off | Toggle
 
@@ -36,8 +52,8 @@ let operation_of_string_opt = function
 let operation_to_string = function Incr -> "increment" | Decr -> "decrement"
 
 type command =
-  | Focus of direction
-  | Move of direction
+  | Focus of focus target
+  | Move of move target
   | Maximize of switch
   | Split of operation
 
@@ -47,8 +63,10 @@ let command_of_string str =
   String.split_on_char ' ' str
   |> List.filter (function "" -> false | _ -> true)
   |> function
-  | [ "focus"; dir ] -> (fun x -> Focus x) <$> direction_of_string_opt dir
-  | [ "move"; dir ] -> (fun x -> Move x) <$> direction_of_string_opt dir
+  | [ "focus"; target ] -> (fun x -> Focus x) <$> target_of_string_opt target
+  | [ "move"; target ] ->
+      Option.bind (target_of_string_opt target) @@ fun target ->
+      (fun x -> Move x) <$> restrict_move_target target
   | [ "maximize"; switch ] ->
       (fun x -> Maximize x) <$> switch_of_string_opt switch
   | [ "split"; op ] -> (fun x -> Split x) <$> operation_of_string_opt op
@@ -60,8 +78,8 @@ let command_of_string_exn str =
   | None -> raise (Invalid_argument "Spatial_ipc.command_of_string_exn")
 
 let command_to_string = function
-  | Focus dir -> Format.sprintf "focus %s" (direction_to_string dir)
-  | Move dir -> Format.sprintf "move %s" (direction_to_string dir)
+  | Focus dir -> Format.sprintf "focus %s" (target_to_string dir)
+  | Move dir -> Format.sprintf "move %s" (target_to_string dir)
   | Maximize switch -> Format.sprintf "maximize %s" (switch_to_string switch)
   | Split op -> Format.sprintf "split %s" (operation_to_string op)
 

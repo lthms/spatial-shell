@@ -27,6 +27,16 @@ let insert_window default_full_view default_maximum_visible workspace window
       Windows_registry.register window { app_id; workspace } state.windows;
   }
 
+let focus_index workspace state index =
+  {
+    state with
+    workspaces =
+      Workspaces_registry.update workspace
+        (function
+          | Some ribbon -> Some (Ribbon.focus_index ribbon index) | None -> None)
+        state.workspaces;
+  }
+
 let toggle_full_view workspace state =
   {
     state with
@@ -138,7 +148,7 @@ let client_command_handle :
    | Run_command cmd ->
        let res =
          match cmd with
-         | Focus Left ->
+         | Focus Prev ->
              ( {
                  state with
                  workspaces =
@@ -150,7 +160,7 @@ let client_command_handle :
                },
                true,
                None )
-         | Focus Right ->
+         | Focus Next ->
              ( {
                  state with
                  workspaces =
@@ -162,9 +172,11 @@ let client_command_handle :
                },
                true,
                None )
-         | Move Left ->
+         | Focus (Index x) ->
+             (focus_index state.current_workspace state x, true, None)
+         | Move Prev ->
              (move_window_left state.current_workspace state, true, None)
-         | Move Right ->
+         | Move Next ->
              (move_window_right state.current_workspace state, true, None)
          | Maximize Toggle ->
              (toggle_full_view state.current_workspace state, true, None)

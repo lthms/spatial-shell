@@ -21,9 +21,17 @@ let () =
 
       match (cmd, reply.focus) with
       | Some idx, Some focus when idx < List.length reply.windows ->
-          let name = List.nth reply.windows idx in
+          let tooltip = List.nth reply.windows idx in
+          let name =
+            match tooltip with
+            | "firefox" -> ""
+            | "kitty" -> ""
+            | "Slack" -> ""
+            | "emacs" -> ""
+            | _ -> " " ^ tooltip
+          in
           let cls = if idx = focus then "focus" else "unfocus" in
-          Format.(printf "%s\n%s\n%s" name name cls)
+          Format.(printf "%s\n%s\n%s" name tooltip cls)
       | Some _, _ -> ()
       | None, _ ->
           List.iteri

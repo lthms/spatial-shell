@@ -165,13 +165,25 @@ let move_focus_right ribbon =
           let x, l = pop_front_exn l in
           { ribbon with visible = Some (f, push_back x l) })
 
-let split_visible ribbon =
-  let rec split_visible acc f = function
-    | x :: rst when f = 0 -> Some (List.rev acc, x, rst)
-    | x :: rst -> split_visible (x :: acc) (f - 1) rst
-    | [] -> raise (Invalid_argument "Ribbon.split_visible")
+let rec focus_index ribbon index =
+  match ribbon.visible with
+  | Some (_, l) when index < List.length l ->
+      { ribbon with visible = Some (index, l) }
+  | Some (_, l) when index < List.length l + List.length ribbon.hidden ->
+      let ribbon = move_focus_right ribbon in
+      focus_index ribbon (index - 1)
+  | _ -> ribbon
+
+let split_at l i =
+  let rec split_visible acc i = function
+    | x :: rst when i = 0 -> Some (List.rev acc, x, rst)
+    | x :: rst -> split_visible (x :: acc) (i - 1) rst
+    | [] -> raise (Invalid_argument "Ribbon.split_at")
   in
-  match ribbon.visible with None -> None | Some (f, l) -> split_visible [] f l
+  split_visible [] i l
+
+let split_visible ribbon =
+  match ribbon.visible with None -> None | Some (f, l) -> split_at l f
 
 let move_window_left ribbon =
   match split_visible ribbon with
