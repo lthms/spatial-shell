@@ -101,13 +101,24 @@ let get_windows_reply_encoding : get_windows_reply Data_encoding.t =
     (fun (focus, windows) -> { focus; windows })
     (obj2 (opt "focus" int31) (req "windows" @@ list string))
 
+type get_workspaces_reply = { current : int; windows : (int * string) list }
+
+let get_workspaces_reply_encoding : get_workspaces_reply Data_encoding.t =
+  let open Data_encoding in
+  conv
+    (fun { current; windows } -> (current, windows))
+    (fun (current, windows) -> { current; windows })
+    (obj2 (req "current" int31) (req "windows" @@ list (tup2 int31 string)))
+
 type 'a t =
   | Run_command : command -> run_command_reply t
   | Get_windows : get_windows_reply t
+  | Get_workspaces : get_workspaces_reply t
 
 let reply_encoding : type a. a t -> a Data_encoding.t = function
   | Run_command _ -> run_command_reply_encoding
   | Get_windows -> get_windows_reply_encoding
+  | Get_workspaces -> get_workspaces_reply_encoding
 
 let reply_to_string : type a. a t -> a -> string =
  fun cmd reply ->
@@ -125,11 +136,14 @@ let reply_of_string : type a. a t -> string -> a option =
 let reply_of_string_exn cmd reply =
   match reply_of_string cmd reply with
   | Some x -> x
-  | None -> failwith "cannot parse reply"
+  | None ->
+      Format.printf "%S\n" reply;
+      failwith "cannot parse reply"
 
 let to_raw_message : type a. a t -> Raw_message.t = function
   | Run_command cmd -> (0l, command_to_string cmd)
   | Get_windows -> (1l, "")
+  | Get_workspaces -> (2l, "")
 
 type packed = Packed : 'a t -> packed
 
@@ -137,6 +151,7 @@ let of_raw_message (op, payload) =
   match op with
   | 0l -> (fun x -> Packed (Run_command x)) <$> command_of_string payload
   | 1l -> Some (Packed Get_windows)
+  | 2l -> Some (Packed Get_workspaces)
   | _ -> None
 
 type socket = Socket.socket

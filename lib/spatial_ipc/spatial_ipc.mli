@@ -28,10 +28,12 @@ val command_of_string_exn : string -> command
 
 type run_command_reply = { success : bool }
 type get_windows_reply = { focus : int option; windows : string list }
+type get_workspaces_reply = { current : int; windows : (int * string) list }
 
 type 'a t =
   | Run_command : command -> run_command_reply t
   | Get_windows : get_windows_reply t
+  | Get_workspaces : get_workspaces_reply t
 
 type socket = Unix.file_descr
 

@@ -193,6 +193,21 @@ let client_command_handle :
                None )
        in
        (res, { success = true })
+   | Get_workspaces ->
+       let current, state =
+         match int_of_string_opt state.current_workspace with
+         | Some current -> (current, state)
+         | None ->
+             (* Forcing a valid workspace *)
+             (* TODO: Force a jump to this workspace *)
+             (0, { state with current_workspace = "0" })
+       in
+       let windows =
+         Workspaces_registry.summary state.workspaces
+         |> List.map (fun (k, w) ->
+                (k, (Windows_registry.find w state.windows).app_id))
+       in
+       ((state, false, None), { current; windows })
    | Get_windows -> (
        let ribbon =
          Workspaces_registry.find_opt state.current_workspace state.workspaces
