@@ -34,6 +34,13 @@ bindsym $mod+Shift+t exec $spatialmsg "move prev"
 # Move the focused window on the right, shift the loop if necessary.
 bindsym $mod+Shift+n exec $spatialmsg "move next"
 
+# Jump to the previous workspace (that is, N-1 for workspace N, but
+# iff N > 0).
+bindsym $mod+r exec $spatialmsg "workspace prev"
+
+# Jump to the next workspace (that is, N+1 for workspace N).
+bindsym $mod+s exec $spatialmsg "workspace next"
+
 # Toggle between a mode where only one window is visible (maximized
 # mode), or a fixed numbers (split mode). spatial-sway will remember
 # how may windows you want visible when not in full view mode.

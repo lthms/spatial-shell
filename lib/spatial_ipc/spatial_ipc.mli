@@ -17,6 +17,7 @@ type operation = Incr | Decr
 
 type command =
   | Focus of focus target
+  | Workspace of focus target
   | Move of move target
   | Maximize of switch
   | Split of operation

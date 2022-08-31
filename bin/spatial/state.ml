@@ -140,6 +140,24 @@ let init default_full_view default_maximum_visible =
       | None -> state)
     (empty cw.name) workspaces
 
+(* TODO: Make it configurable *)
+let max_workspace = 6
+
+let send_command_workspace : 'kind Spatial_ipc.target -> state -> unit =
+ fun dir state ->
+  (match (dir, int_of_string_opt state.current_workspace) with
+  | Next, Some x when x < max_workspace -> Some (x + 1)
+  | Prev, Some x when 1 < x -> Some (x - 1)
+  | (Next | Prev), Some _ -> None
+  | (Next | Prev), None -> Some 0
+  | Index t, _ -> Some t)
+  |> function
+  | Some target ->
+      ignore
+      @@ Sway_ipc.send_command
+           (Run_command [ Workspace (string_of_int target) ])
+  | None -> ()
+
 let client_command_handle :
     type a. state -> a Spatial_ipc.t -> (state * bool * int64 option) * a =
  fun state cmd ->
@@ -174,6 +192,12 @@ let client_command_handle :
                None )
          | Focus (Index x) ->
              (focus_index state.current_workspace state x, true, None)
+         | Workspace dir ->
+             (* Don’t update the state, but ask Sway to change the
+                current workspace instead. This will trigger an event
+                that we will eventually received. *)
+             send_command_workspace dir state;
+             (state, false, None)
          | Move Prev ->
              (move_window_left state.current_workspace state, true, None)
          | Move Next ->

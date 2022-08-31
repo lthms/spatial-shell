@@ -53,6 +53,7 @@ let operation_to_string = function Incr -> "increment" | Decr -> "decrement"
 
 type command =
   | Focus of focus target
+  | Workspace of focus target
   | Move of move target
   | Maximize of switch
   | Split of operation
@@ -64,6 +65,8 @@ let command_of_string str =
   |> List.filter (function "" -> false | _ -> true)
   |> function
   | [ "focus"; target ] -> (fun x -> Focus x) <$> target_of_string_opt target
+  | [ "workspace"; target ] ->
+      (fun x -> Workspace x) <$> target_of_string_opt target
   | [ "move"; target ] ->
       Option.bind (target_of_string_opt target) @@ fun target ->
       (fun x -> Move x) <$> restrict_move_target target
@@ -79,6 +82,7 @@ let command_of_string_exn str =
 
 let command_to_string = function
   | Focus dir -> Format.sprintf "focus %s" (target_to_string dir)
+  | Workspace dir -> Format.sprintf "workspace %s" (target_to_string dir)
   | Move dir -> Format.sprintf "move %s" (target_to_string dir)
   | Maximize switch -> Format.sprintf "maximize %s" (switch_to_string switch)
   | Split op -> Format.sprintf "split %s" (operation_to_string op)
