@@ -109,6 +109,22 @@ let register_window default_full_view default_maximum_visible workspace state
       }
   | _ -> state
 
+let record_window_title_change state (node : Node.t) =
+  {
+    state with
+    windows =
+      Windows_registry.update node.id
+        (function
+          | Some info ->
+              Some
+                {
+                  info with
+                  Spatial_ipc.name = Option.value ~default:"" node.name;
+                }
+          | None -> None)
+        state.windows;
+  }
+
 let unregister_window state window =
   match Windows_registry.find_opt window state.windows with
   | Some info ->

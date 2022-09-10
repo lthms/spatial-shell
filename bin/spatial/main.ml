@@ -22,8 +22,11 @@ let window_handle (ev : Event.window_event) state =
   | Event.Close ->
       let state = State.unregister_window state ev.container.id in
       (state, true, None)
-  | Event.Focus | Event.Title | Event.Fullscreen_mode | Event.Move | Event.Mark
-  | Event.Urgent ->
+  | Event.Title ->
+      let state = State.record_window_title_change state ev.container in
+      (state, false, None)
+  | Event.Focus | Event.Fullscreen_mode | Event.Move | Event.Mark | Event.Urgent
+    ->
       (state, false, None)
   | Event.Floating -> (
       match ev.container.node_type with

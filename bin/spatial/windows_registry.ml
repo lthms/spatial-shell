@@ -8,6 +8,7 @@ let register : int64 -> window_info -> t -> t = Map.add
 let unregister = Map.remove
 let find = Map.find
 let find_opt = Map.find_opt
+let update = Map.update
 
 let pp_window fmt (id, { app_id; name; workspace }) =
   Format.fprintf fmt "{ id = %Ld; app_id = %s; name = %s; workspace = %s }" id
