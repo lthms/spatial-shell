@@ -16,17 +16,6 @@ let empty current_workspace =
 let set_current_workspace current_workspace state =
   { state with current_workspace }
 
-let insert_window default_full_view default_maximum_visible workspace window
-    app_id state =
-  {
-    state with
-    workspaces =
-      Workspaces_registry.register_window default_full_view
-        default_maximum_visible workspace window state.workspaces;
-    windows =
-      Windows_registry.register window { app_id; workspace } state.windows;
-  }
-
 let focus_index workspace state index =
   {
     state with
@@ -105,10 +94,19 @@ let arrange_current_workspace ?force_focus state =
 
 let register_window default_full_view default_maximum_visible workspace state
     (tree : Node.t) =
-  match (tree.node_type, tree.app_id) with
-  | Con, Some app_id ->
-      insert_window default_full_view default_maximum_visible workspace tree.id
-        app_id state
+  match tree.node_type with
+  | Con ->
+      let id = tree.id in
+      let app_id = Option.value ~default:"" tree.app_id in
+      let name = Option.value ~default:"" tree.name in
+      {
+        state with
+        workspaces =
+          Workspaces_registry.register_window default_full_view
+            default_maximum_visible workspace id state.workspaces;
+        windows =
+          Windows_registry.register id { app_id; workspace; name } state.windows;
+      }
   | _ -> state
 
 let unregister_window state window =
@@ -228,8 +226,7 @@ let client_command_handle :
        in
        let windows =
          Workspaces_registry.summary state.workspaces
-         |> List.map (fun (k, w) ->
-                (k, (Windows_registry.find w state.windows).app_id))
+         |> List.map (fun (k, w) -> (k, Windows_registry.find w state.windows))
        in
        ((state, false, None), { current; windows })
    | Get_windows -> (
@@ -246,8 +243,7 @@ let client_command_handle :
                    focus = Some f;
                    windows =
                      List.map
-                       (fun id ->
-                         (Windows_registry.find id state.windows).app_id)
+                       (fun id -> Windows_registry.find id state.windows)
                        (l @ ribbon.hidden);
                  }
              | None -> { focus = None; windows = [] }) ))

@@ -3,16 +3,20 @@ open Spatial_ipc
 let default_icon = ""
 let empty_workspace_icon = "◯"
 
-let icon_of = function
+(* TODO: This should be part of the config of spatial
+   Something like 'for window [app_id="firefox"] icon ""'. *)
+let icon_of info =
+  match info.app_id with
   | "firefox" -> Some ""
   | "kitty" -> Some ""
-  | "Slack" -> Some ""
+  | "Electron" ->
+      if String.starts_with ~prefix:"Slack" info.name then Some "" else None
   | "emacs" -> Some ""
   | _ -> None
 
 let workspace_icon workspace windows =
   List.assq_opt workspace windows |> function
-  | Some app_id -> Option.value ~default:default_icon (icon_of app_id)
+  | Some info -> Option.value ~default:default_icon (icon_of info)
   | None -> empty_workspace_icon
 
 let () =
@@ -36,20 +40,20 @@ let () =
 
       match (cmd, reply.focus) with
       | Some idx, Some focus when idx < List.length reply.windows ->
-          let tooltip = List.nth reply.windows idx in
+          let window = List.nth reply.windows idx in
           let name =
             Option.value
-              ~default:(default_icon ^ " " ^ tooltip)
-              (icon_of tooltip)
+              ~default:(default_icon ^ " " ^ window.app_id)
+              (icon_of window)
           in
           let cls = if idx = focus then "focus" else "unfocus" in
-          Format.(printf "%s\n%s\n%s" name tooltip cls)
+          Format.(printf "%s\n%s\n%s" name window.app_id cls)
       | Some _, _ -> ()
       | None, _ ->
           List.iteri
-            (fun idx name ->
+            (fun idx info ->
               let marker = if reply.focus = Some idx then "*" else "" in
-              Format.printf "| %s%s%s | " marker name marker)
+              Format.printf "| %s%s%s | " marker info.app_id marker)
             reply.windows)
   | "get_workspaces" -> (
       let cmd = Clap.optional_int ~placeholder:"INDEX" () in

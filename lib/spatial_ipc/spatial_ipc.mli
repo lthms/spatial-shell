@@ -28,8 +28,13 @@ val command_of_string_exn : string -> command
 (** @raise [Invalid_argument] *)
 
 type run_command_reply = { success : bool }
-type get_windows_reply = { focus : int option; windows : string list }
-type get_workspaces_reply = { current : int; windows : (int * string) list }
+type window_info = { workspace : string; app_id : string; name : string }
+type get_windows_reply = { focus : int option; windows : window_info list }
+
+type get_workspaces_reply = {
+  current : int;
+  windows : (int * window_info) list;
+}
 
 type 'a t =
   | Run_command : command -> run_command_reply t

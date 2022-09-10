@@ -96,23 +96,35 @@ let run_command_reply_encoding =
     (fun success -> { success })
     (obj1 (req "success" bool))
 
-type get_windows_reply = { focus : int option; windows : string list }
+type window_info = { workspace : string; app_id : string; name : string }
+type get_windows_reply = { focus : int option; windows : window_info list }
+
+let window_info_encoding : window_info Data_encoding.t =
+  let open Data_encoding in
+  conv
+    (fun { workspace; app_id; name } -> (workspace, app_id, name))
+    (fun (workspace, app_id, name) -> { workspace; app_id; name })
+    (obj3 (req "focus" string) (req "app_id" string) (req "name" string))
 
 let get_windows_reply_encoding : get_windows_reply Data_encoding.t =
   let open Data_encoding in
   conv
     (fun { focus; windows } -> (focus, windows))
     (fun (focus, windows) -> { focus; windows })
-    (obj2 (opt "focus" int31) (req "windows" @@ list string))
+    (obj2 (opt "focus" int31) (req "windows" @@ list window_info_encoding))
 
-type get_workspaces_reply = { current : int; windows : (int * string) list }
+type get_workspaces_reply = {
+  current : int;
+  windows : (int * window_info) list;
+}
 
 let get_workspaces_reply_encoding : get_workspaces_reply Data_encoding.t =
   let open Data_encoding in
   conv
     (fun { current; windows } -> (current, windows))
     (fun (current, windows) -> { current; windows })
-    (obj2 (req "current" int31) (req "windows" @@ list (tup2 int31 string)))
+    (obj2 (req "current" int31)
+       (req "windows" @@ list (tup2 int31 window_info_encoding)))
 
 type 'a t =
   | Run_command : command -> run_command_reply t
