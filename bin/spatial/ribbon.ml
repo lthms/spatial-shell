@@ -277,6 +277,7 @@ let hide_window_command window =
 
 let show_window_command workspace window =
   [
+    Command.With_criteria (Con_id window, Opacity 0.75);
     Command.With_criteria (Con_id window, Move_container workspace);
     Command.With_criteria (Con_id window, Focus);
   ]
@@ -318,8 +319,15 @@ let arrange_commands ?force_focus workspace ribbon =
   let focus_command =
     match (force_focus, ribbon.visible) with
     | None, Some (f, l) ->
-        [ Command.With_criteria (Con_id (List.nth l f), Focus) ]
-    | Some w, _ -> [ Command.With_criteria (Con_id w, Focus) ]
+        [
+          Command.With_criteria (Con_id (List.nth l f), Focus);
+          Command.With_criteria (Con_id (List.nth l f), Opacity 1.0);
+        ]
+    | Some w, _ ->
+        [
+          Command.With_criteria (Con_id w, Focus);
+          Command.With_criteria (Con_id w, Opacity 1.0);
+        ]
     | _ -> []
   in
   hide_commands @ show_commands @ focus_command
