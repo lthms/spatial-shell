@@ -105,9 +105,9 @@ let remove_if_present window =
 
 let fill_space ribbon =
   if visible_windows_count ribbon < ribbon.maximum_visible_size then
-    match (pop_back ribbon.hidden, ribbon.visible) with
+    match (pop_front ribbon.hidden, ribbon.visible) with
     | Some (x, hidden), Some (f, l) ->
-        { ribbon with visible = Some (f + 1, push_front x l); hidden }
+        { ribbon with visible = Some (f, push_back x l); hidden }
     | Some (x, hidden), None ->
         { ribbon with visible = Some (0, [ x ]); hidden }
     | None, _ -> ribbon
