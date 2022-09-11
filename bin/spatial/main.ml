@@ -1,5 +1,9 @@
 open Sway_ipc_types
 
+exception Sway_exited
+
+external reraise : exn -> 'a = "%reraise"
+
 let workspace_handle (ev : Event.workspace_event) state =
   match ev.change with
   | Focus ->
@@ -85,12 +89,12 @@ let rec go poll state sway_socket server_socket =
                 Poll.(set poll fd Event.read);
                 res
               with
-              | Mltp_ipc.Socket.Connection_closed
-              when fd <> sway_socket && fd <> server_socket
-              ->
-                Poll.(set poll fd Event.none);
-                Unix.close fd;
-                (state, arrange, force_focus))
+              | Mltp_ipc.Socket.Connection_closed when fd = sway_socket ->
+                  raise Sway_exited
+              | Mltp_ipc.Socket.Connection_closed when fd <> server_socket ->
+                  Poll.(set poll fd Event.none);
+                  Unix.close fd;
+                  (state, arrange, force_focus))
         in
         if arrange then (
           State.arrange_current_workspace ?force_focus state;
@@ -116,4 +120,6 @@ let () =
   let state = State.init false 2 in
   State.arrange_current_workspace state;
 
-  go poll state sway_socket server_socket
+  try go poll state sway_socket server_socket with
+  | Sway_exited -> ()
+  | exn -> reraise exn
