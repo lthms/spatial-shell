@@ -3,13 +3,20 @@ open Sway_ipc_types
 type t = {
   full_view : bool;
   maximum_visible_size : int;
+  hidden_left : int64 list;
   visible : (int * int64 list) option;
-  hidden : int64 list;
+  hidden_right : int64 list;
 }
 
 let empty full_view maximum_visible_size =
   assert (0 < maximum_visible_size);
-  { full_view; maximum_visible_size; visible = None; hidden = [] }
+  {
+    full_view;
+    maximum_visible_size;
+    hidden_left = [];
+    visible = None;
+    hidden_right = [];
+  }
 
 let visible_windows_count = function
   | { visible = None; _ } -> 0
@@ -56,7 +63,7 @@ let shrink_left ribbon =
       {
         ribbon with
         visible = Some (f - 1, l);
-        hidden = push_back w ribbon.hidden;
+        hidden_left = push_front w ribbon.hidden_left;
       }
   | _ -> ribbon
 
@@ -69,7 +76,11 @@ let shrink_right ribbon =
   | Some (f, l) when ribbon.maximum_visible_size < visible_windows_count ribbon
     ->
       let w, l = pop_back_exn l in
-      { ribbon with visible = Some (f, l); hidden = push_front w ribbon.hidden }
+      {
+        ribbon with
+        visible = Some (f, l);
+        hidden_right = push_front w ribbon.hidden_right;
+      }
   | _ -> ribbon
 
 let shrink ribbon =
@@ -105,12 +116,20 @@ let remove_if_present window =
 
 let fill_space ribbon =
   if visible_windows_count ribbon < ribbon.maximum_visible_size then
-    match (pop_front ribbon.hidden, ribbon.visible) with
-    | Some (x, hidden), Some (f, l) ->
-        { ribbon with visible = Some (f, push_back x l); hidden }
-    | Some (x, hidden), None ->
-        { ribbon with visible = Some (0, [ x ]); hidden }
-    | None, _ -> ribbon
+    match
+      ( pop_front ribbon.hidden_right,
+        pop_front ribbon.hidden_left,
+        ribbon.visible )
+    with
+    | Some (x, hidden_right), _, Some (f, l) ->
+        { ribbon with visible = Some (f, push_back x l); hidden_right }
+    | Some (x, hidden_right), _, None ->
+        { ribbon with visible = Some (0, [ x ]); hidden_right }
+    | None, Some (x, hidden_left), Some (f, l) ->
+        { ribbon with visible = Some (f + 1, push_front x l); hidden_left }
+    | None, Some (x, hidden_left), None ->
+        { ribbon with visible = Some (0, [ x ]); hidden_left }
+    | None, None, _ -> ribbon
   else ribbon
 
 let incr_maximum_visible ribbon =
@@ -133,8 +152,18 @@ let remove_window window ribbon =
       | Some (_, l) ->
           let f' = if f < List.length l then f else f - 1 in
           { ribbon with visible = Some (f', l) }
-      | None -> { ribbon with hidden = remove_if_present window ribbon.hidden })
-  | None -> { ribbon with hidden = remove_if_present window ribbon.hidden }
+      | None ->
+          {
+            ribbon with
+            hidden_left = remove_if_present window ribbon.hidden_left;
+            hidden_right = remove_if_present window ribbon.hidden_right;
+          })
+  | None ->
+      {
+        ribbon with
+        hidden_left = remove_if_present window ribbon.hidden_left;
+        hidden_right = remove_if_present window ribbon.hidden_right;
+      }
 
 let toggle_full_view ribbon = { ribbon with full_view = not ribbon.full_view }
 
@@ -142,13 +171,11 @@ let move_focus_left ribbon =
   match ribbon.visible with
   | None -> ribbon
   | Some (0, l) -> (
-      match pop_back ribbon.hidden with
-      | Some (x, hidden) ->
+      match pop_front ribbon.hidden_left with
+      | Some (x, hidden_left) ->
           shrink_right
-            { ribbon with visible = Some (0, push_front x l); hidden }
-      | None ->
-          let x, l = pop_back_exn l in
-          { ribbon with visible = Some (0, push_front x l) })
+            { ribbon with visible = Some (0, push_front x l); hidden_left }
+      | None -> ribbon)
   | Some (f, l) -> { ribbon with visible = Some (f - 1, l) }
 
 let move_focus_right ribbon =
@@ -157,22 +184,31 @@ let move_focus_right ribbon =
   | Some (f, l) when f < List.length l - 1 ->
       { ribbon with visible = Some (f + 1, l) }
   | Some (f, l) -> (
-      match pop_front ribbon.hidden with
-      | Some (x, hidden) ->
+      match pop_front ribbon.hidden_right with
+      | Some (x, hidden_right) ->
           shrink_left
-            { ribbon with visible = Some (f + 1, push_back x l); hidden }
-      | None ->
-          let x, l = pop_front_exn l in
-          { ribbon with visible = Some (f, push_back x l) })
+            { ribbon with visible = Some (f + 1, push_back x l); hidden_right }
+      | None -> ribbon)
 
-let rec focus_index ribbon index =
-  match ribbon.visible with
-  | Some (_, l) when index < List.length l ->
-      { ribbon with visible = Some (index, l) }
-  | Some (_, l) when index < List.length l + List.length ribbon.hidden ->
-      let ribbon = move_focus_right ribbon in
-      focus_index ribbon (index - 1)
-  | _ -> ribbon
+let focus_index ribbon index =
+  let index = index - List.length ribbon.hidden_left in
+  let rec aux ribbon index =
+    match ribbon.visible with
+    | Some (_, l) ->
+        let visible_len = List.length l in
+        if index < 0 then
+          aux (move_focus_left { ribbon with visible = Some (0, l) }) (index + 1)
+        else if index < visible_len then
+          { ribbon with visible = Some (index, l) }
+        else if index < visible_len + List.length ribbon.hidden_right then
+          aux
+            (move_focus_right
+               { ribbon with visible = Some (visible_len - 1, l) })
+            (index - 1)
+        else ribbon
+    | _ -> ribbon
+  in
+  aux ribbon index
 
 let split_at l i =
   let rec split_visible acc i = function
@@ -190,39 +226,28 @@ let move_window_left ribbon =
   | Some (left, focus, right) -> (
       match pop_back left with
       | Some (x, left) ->
-          (* Case:   [|a b {f} ..| ..]
-             Result: [|a {f} b ..| ..] *)
+          (* Case:   [.. |a b {f} ..| ..]
+             Result: [.. |a {f} b ..| ..] *)
           {
             ribbon with
             visible =
               Some (List.length left, left @ [ focus ] @ push_front x right);
           }
       | None -> (
-          (* Case:   [|{f} ..| ..] *)
-          match pop_back ribbon.hidden with
-          | Some (x, hidden) ->
-              (* Case:   [|{f} ..| a b] *)
-              (* Result: [|{f} b ..| a] *)
+          (* Case:   [.. |{f} ..| ..] *)
+          match pop_front ribbon.hidden_left with
+          | Some (x, hidden_left) ->
+              (* Case:   [.. a |{f} ..| ..] *)
+              (* Result: [.. |{f} a ..| ..] *)
               {
                 ribbon with
                 visible = Some (0, focus :: push_front x right);
-                hidden;
+                hidden_left;
               }
               |> shrink_right
-          | None -> (
-              (* Case:   [|{f} ..|] *)
-              match pop_back right with
-              | Some (x, right) ->
-                  (* Case:   [|{f} a b c|]
-                     Result: [|{f} c a b|] *)
-                  {
-                    ribbon with
-                    visible = Some (0, focus :: push_front x right);
-                  }
-              | None ->
-                  (* Case:   [|{f}|]
-                     Result: [|{f}|] *)
-                  ribbon)))
+          | None ->
+              (* Case:   [|{f} ..| ..] *)
+              ribbon))
   (* Case:   [||]
      Result: [||] *)
   | None -> ribbon
@@ -233,40 +258,27 @@ let move_window_right ribbon =
       let f = List.length left + 1 in
       match pop_front right with
       | Some (x, right) ->
-          (* Case:   [|.. {f} a b| ..]
-             Result: [|.. a {f} b| ..] *)
+          (* Case:   [.. |.. {f} a b| ..]
+             Result: [.. |.. a {f} b| ..] *)
           {
             ribbon with
             visible = Some (f, push_back x left @ [ focus ] @ right);
           }
       | None -> (
-          (* Case:   [|.. {f}| ..] *)
-          match pop_front ribbon.hidden with
-          | Some (x, hidden) ->
-              (* Case:   [|.. {f}| a b] *)
-              (* Result: [|.. a {f}| b] *)
+          (* Case:   [.. |.. {f}| ..] *)
+          match pop_front ribbon.hidden_right with
+          | Some (x, hidden_right) ->
+              (* Case:   [  |.. {f}| a b] *)
+              (* Result: [  |.. a {f}| b] *)
               {
                 ribbon with
                 visible = Some (f, push_back x left @ [ focus ] @ right);
-                hidden;
+                hidden_right;
               }
               |> shrink_left
-          | None -> (
-              (* Case:   [|.. {f}|] *)
-              match pop_front left with
-              | Some (x, left) ->
-                  (* Case:   [|a b {f}|]
-                     Result: [|b a {f}|]
-                     In this case, focus remains in the same place, so
-                     [f - 1] *)
-                  {
-                    ribbon with
-                    visible = Some (f - 1, push_back x left @ [ focus ] @ right);
-                  }
-              | None ->
-                  (* Case:   [|{f}|]
-                     Result: [|{f}|] *)
-                  ribbon)))
+          | None ->
+              (* Case:   [.. |.. {f}|] *)
+              ribbon))
   (* Case:   [||]
      Result: [||] *)
   | None -> ribbon
@@ -289,7 +301,9 @@ let visible_windows ribbon =
   | None -> []
 
 let all_windows ribbon =
-  ribbon.hidden @ visible_windows { ribbon with full_view = false }
+  List.rev ribbon.hidden_left
+  @ visible_windows { ribbon with full_view = false }
+  @ ribbon.hidden_right
 
 let focused_window ribbon =
   match ribbon.visible with Some (f, l) -> List.nth_opt l f | None -> None
@@ -336,5 +350,7 @@ let pp fmt ribbon =
   match split_visible ribbon with
   | None -> Format.fprintf fmt "[]"
   | Some (left, x, right) ->
-      Format.fprintf fmt "[|%a{%Ld}%a|%a]" Pp_helpers.pp_windows_seq left x
-        Pp_helpers.pp_windows_seq right Pp_helpers.pp_windows_seq ribbon.hidden
+      Format.fprintf fmt "[%a|%a{%Ld}%a|%a]" Pp_helpers.pp_windows_seq
+        (List.rev ribbon.hidden_left)
+        Pp_helpers.pp_windows_seq left x Pp_helpers.pp_windows_seq right
+        Pp_helpers.pp_windows_seq ribbon.hidden_right

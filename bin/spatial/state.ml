@@ -254,13 +254,13 @@ let client_command_handle :
          | None -> { focus = None; windows = [] }
          | Some ribbon -> (
              match ribbon.visible with
-             | Some (f, l) ->
+             | Some (f, _) ->
                  {
-                   focus = Some f;
+                   focus = Some (f + List.length ribbon.hidden_left);
                    windows =
                      List.map
                        (fun id -> Windows_registry.find id state.windows)
-                       (l @ ribbon.hidden);
+                       (Ribbon.all_windows ribbon);
                  }
              | None -> { focus = None; windows = [] }) ))
     : _ * a)
