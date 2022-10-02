@@ -99,7 +99,7 @@ let rec go poll state sway_socket server_socket =
         if arrange then (
           State.arrange_current_workspace ?force_focus state;
           (* TODO: Be more configurable about that *)
-          ignore (Unix.system "/usr/bin/pkill -SIGRTMIN+8 waybar"));
+          ignore (Jobs.shell "/usr/bin/pkill -SIGRTMIN+8 waybar"));
         Poll.clear poll;
         go poll state sway_socket server_socket
   with Unix.Unix_error (EINTR, _, _) ->
