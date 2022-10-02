@@ -10,6 +10,11 @@ let find = Map.find
 let find_opt = Map.find_opt
 let update = Map.update
 
+let change_workspace window workspace map =
+  update window
+    (function Some info -> Some { info with workspace } | None -> None)
+    map
+
 let pp_window fmt (id, { app_id; name; workspace }) =
   Format.fprintf fmt "{ id = %Ld; app_id = %s; name = %s; workspace = %s }" id
     name app_id workspace

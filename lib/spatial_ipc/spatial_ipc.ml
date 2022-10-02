@@ -7,18 +7,7 @@ open Mltp_ipc
 let socket_path = "/tmp/spatial-sway.socket"
 let magic_string = "spatial-ipc"
 
-type focus = Focus_kind
-type move = Move_kind
-
-type 'kind target =
-  | Prev : 'kind target
-  | Next : 'kind target
-  | Index : int -> focus target
-
-let restrict_move_target : 'k target -> move target option = function
-  | Index _ -> None
-  | Next -> Some Next
-  | Prev -> Some Prev
+type target = Prev | Next | Index of int
 
 let target_of_string_opt = function
   | "prev" -> Some Prev
@@ -27,10 +16,25 @@ let target_of_string_opt = function
       Option.bind (int_of_string_opt x) @@ fun x ->
       if 0 <= x then Some (Index x) else None
 
-let target_to_string : type kind. kind target -> string = function
+let target_to_string = function
   | Prev -> "prev"
   | Next -> "next"
   | Index x -> string_of_int x
+
+type move_target = Left | Right | Up | Down
+
+let move_target_of_string_opt = function
+  | "left" -> Some Left
+  | "right" -> Some Right
+  | "up" -> Some Up
+  | "down" -> Some Down
+  | _ -> None
+
+let move_target_to_string = function
+  | Left -> "left"
+  | Right -> "right"
+  | Up -> "up"
+  | Down -> "down"
 
 type switch = On | Off | Toggle
 
@@ -52,9 +56,9 @@ let operation_of_string_opt = function
 let operation_to_string = function Incr -> "increment" | Decr -> "decrement"
 
 type command =
-  | Focus of focus target
-  | Workspace of focus target
-  | Move of move target
+  | Focus of target
+  | Workspace of target
+  | Move of move_target
   | Maximize of switch
   | Split of operation
 
@@ -67,9 +71,7 @@ let command_of_string str =
   | [ "focus"; target ] -> (fun x -> Focus x) <$> target_of_string_opt target
   | [ "workspace"; target ] ->
       (fun x -> Workspace x) <$> target_of_string_opt target
-  | [ "move"; target ] ->
-      Option.bind (target_of_string_opt target) @@ fun target ->
-      (fun x -> Move x) <$> restrict_move_target target
+  | [ "move"; target ] -> (fun x -> Move x) <$> move_target_of_string_opt target
   | [ "maximize"; switch ] ->
       (fun x -> Maximize x) <$> switch_of_string_opt switch
   | [ "split"; op ] -> (fun x -> Split x) <$> operation_of_string_opt op
@@ -83,7 +85,7 @@ let command_of_string_exn str =
 let command_to_string = function
   | Focus dir -> Format.sprintf "focus %s" (target_to_string dir)
   | Workspace dir -> Format.sprintf "workspace %s" (target_to_string dir)
-  | Move dir -> Format.sprintf "move %s" (target_to_string dir)
+  | Move dir -> Format.sprintf "move %s" (move_target_to_string dir)
   | Maximize switch -> Format.sprintf "maximize %s" (switch_to_string switch)
   | Split op -> Format.sprintf "split %s" (operation_to_string op)
 

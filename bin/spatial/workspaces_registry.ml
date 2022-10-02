@@ -32,6 +32,7 @@ let unregister = Map.remove
 let find = Map.find
 let find_opt = Map.find_opt
 let update = Map.update
+let add = Map.add
 let get_list reg = reg |> Map.to_seq |> Seq.map fst |> List.of_seq
 
 let pp fmt workspaces =

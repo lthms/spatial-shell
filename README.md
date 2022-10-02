@@ -28,11 +28,17 @@ bindsym $mod+t exec $spatialmsg "focus prev"
 # Same thing, for the right.
 bindsym $mod+n exec $spatialmsg "focus next"
 
-# Move the focused window on the left, shift the loop if necessary.
-bindsym $mod+Shift+t exec $spatialmsg "move prev"
+# Move the focused window on the left.
+bindsym $mod+Shift+t exec $spatialmsg "move left"
 
-# Move the focused window on the right, shift the loop if necessary.
-bindsym $mod+Shift+n exec $spatialmsg "move next"
+# Move the focused window on the right.
+bindsym $mod+Shift+n exec $spatialmsg "move right"
+
+# Move the focused window on the upper workspace.
+bindsym $mod+Shift+r exec $spatialmsg "move up"
+
+# Move the focused window on the lower workspace.
+bindsym $mod+Shift+s exec $spatialmsg "move down"
 
 # Jump to the previous workspace (that is, N-1 for workspace N, but
 # iff N > 0).

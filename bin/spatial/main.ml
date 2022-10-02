@@ -61,6 +61,7 @@ let rec go poll state sway_socket server_socket =
     match Poll.wait poll (Poll.Timeout.after 10_000_000_000_000L) with
     | `Timeout -> go poll state sway_socket server_socket
     | `Ok ->
+        let previous_state = state in
         let state, arrange, force_focus =
           poll_fold_ready poll (state, false, None)
             (fun (state, arrange, force_focus) fd _event ->
@@ -99,7 +100,7 @@ let rec go poll state sway_socket server_socket =
         if arrange then (
           (* TODO: Be more configurable about that *)
           ignore (Jobs.shell "/usr/bin/pkill -SIGRTMIN+8 waybar");
-          State.arrange_current_workspace ?force_focus state);
+          State.arrange_current_workspace ~previous_state ?force_focus state);
         Poll.clear poll;
         go poll state sway_socket server_socket
   with Unix.Unix_error (EINTR, _, _) ->

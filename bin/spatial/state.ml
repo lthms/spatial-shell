@@ -46,6 +46,50 @@ let move_window_right workspace state =
         state.workspaces;
   }
 
+let move_window_in_workspace default_full_view default_maximum_visible
+    target_workspace state =
+  let current_workspace = state.current_workspace in
+  match target_workspace current_workspace with
+  | Some target_workspace -> (
+      let current_ribbon =
+        Workspaces_registry.find_opt current_workspace state.workspaces
+      in
+      match current_ribbon with
+      | Some ribbon -> (
+          match ribbon.visible with
+          | Some (f, l) ->
+              let window = List.nth l f in
+              let ribbon = Ribbon.remove_window window ribbon in
+              {
+                windows =
+                  Windows_registry.change_workspace window target_workspace
+                    state.windows;
+                current_workspace = target_workspace;
+                workspaces =
+                  Workspaces_registry.add current_workspace ribbon
+                    state.workspaces
+                  |> Workspaces_registry.register_window default_full_view
+                       default_maximum_visible target_workspace window;
+              }
+          | None -> state)
+      | None -> state)
+  | None -> state
+
+let move_window_up default_full_view default_maximum_visible =
+  move_window_in_workspace default_full_view default_maximum_visible
+    (fun current ->
+      match int_of_string_opt current with
+      | Some x when 0 < x -> Some (string_of_int (x - 1))
+      | _ -> None)
+
+let move_window_down default_full_view default_maximum_visible =
+  move_window_in_workspace default_full_view default_maximum_visible
+    (fun current ->
+      match int_of_string_opt current with
+      (* TODO: 6 should be configurable *)
+      | Some x when x < 6 -> Some (string_of_int (x + 1))
+      | _ -> None)
+
 let move_window_left workspace state =
   {
     state with
@@ -78,19 +122,33 @@ let decr_maximum_visible_size workspace state =
         state.workspaces;
   }
 
-let arrange_workspace_commands ?force_focus workspace state =
-  match Workspaces_registry.find_opt workspace state.workspaces with
-  | Some ribbon -> Ribbon.arrange_commands ?force_focus workspace ribbon
-  | None -> []
+let arrange_workspace_commands ?previous_state ?force_focus workspace state =
+  let change_workspace =
+    match previous_state with
+    | Some previous_state ->
+        if previous_state.current_workspace <> state.current_workspace then
+          [ Sway_ipc_types.Command.Workspace state.current_workspace ]
+        else []
+    | None -> []
+  in
+  let update_workspace =
+    match Workspaces_registry.find_opt workspace state.workspaces with
+    | Some ribbon -> Ribbon.arrange_commands ?force_focus workspace ribbon
+    | None -> []
+  in
+  change_workspace @ update_workspace
 
-let arrange_workspace ?force_focus ~socket workspace state =
-  let cmds = arrange_workspace_commands ?force_focus workspace state in
+let arrange_workspace ?previous_state ?force_focus ~socket workspace state =
+  let cmds =
+    arrange_workspace_commands ?previous_state ?force_focus workspace state
+  in
   let _replies = Sway_ipc.send_command ~socket (Run_command cmds) in
   ()
 
-let arrange_current_workspace ?force_focus state =
+let arrange_current_workspace ?previous_state ?force_focus state =
   Sway_ipc.with_socket (fun socket ->
-      arrange_workspace ?force_focus ~socket state.current_workspace state)
+      arrange_workspace ?previous_state ?force_focus ~socket
+        state.current_workspace state)
 
 let register_window default_full_view default_maximum_visible workspace state
     (tree : Node.t) =
@@ -157,7 +215,7 @@ let init default_full_view default_maximum_visible =
 (* TODO: Make it configurable *)
 let max_workspace = 6
 
-let send_command_workspace : 'kind Spatial_ipc.target -> state -> unit =
+let send_command_workspace : Spatial_ipc.target -> state -> unit =
  fun dir state ->
   (match (dir, int_of_string_opt state.current_workspace) with
   | Next, Some x when x < max_workspace -> Some (x + 1)
@@ -212,10 +270,12 @@ let client_command_handle :
                 that we will eventually received. *)
              send_command_workspace dir state;
              (state, false, None)
-         | Move Prev ->
+         | Move Left ->
              (move_window_left state.current_workspace state, true, None)
-         | Move Next ->
+         | Move Right ->
              (move_window_right state.current_workspace state, true, None)
+         | Move Up -> (move_window_up false 2 state, true, None)
+         | Move Down -> (move_window_down false 2 state, true, None)
          | Maximize Toggle ->
              (toggle_full_view state.current_workspace state, true, None)
          | Maximize _ ->
