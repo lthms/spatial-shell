@@ -8,8 +8,10 @@ type target = Prev | Next | Index of int
 type move_target = Left | Right | Up | Down
 type switch = On | Off | Toggle
 type operation = Incr | Decr
+type 'a builtin = Visible_windows : int builtin | Focus_view : bool builtin
 
 type command =
+  | Default : 'a builtin * 'a -> command
   | Focus of target
   | Workspace of target
   | Move of move_target

@@ -19,8 +19,7 @@ let window_handle (ev : Event.window_event) state =
   match ev.change with
   | Event.New ->
       let state =
-        State.register_window false 2 state.State.current_workspace state
-          ev.container
+        State.register_window state.State.current_workspace state ev.container
       in
       (state, true, None)
   | Event.Close ->
@@ -36,7 +35,7 @@ let window_handle (ev : Event.window_event) state =
       match ev.container.node_type with
       | Con ->
           let state =
-            State.register_window false 2 state.State.current_workspace state
+            State.register_window state.State.current_workspace state
               ev.container
           in
           (state, true, None)
@@ -118,7 +117,7 @@ let () =
   Unix.set_nonblock server_socket;
   Poll.(set poll server_socket Event.read);
 
-  let state = State.init false 2 in
+  let state = State.init () in
   State.arrange_current_workspace state;
 
   try go poll state sway_socket server_socket with

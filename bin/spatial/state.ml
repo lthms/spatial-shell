@@ -4,6 +4,8 @@ type state = {
   current_workspace : string;
   windows : Windows_registry.t;
   workspaces : Workspaces_registry.t;
+  default_focus_view : bool;
+  default_visible_windows : int;
 }
 
 let empty current_workspace =
@@ -11,6 +13,8 @@ let empty current_workspace =
     current_workspace;
     windows = Windows_registry.empty;
     workspaces = Workspaces_registry.empty;
+    default_focus_view = false;
+    default_visible_windows = 2;
   }
 
 let set_current_workspace current_workspace state =
@@ -46,8 +50,7 @@ let move_window_right workspace state =
         state.workspaces;
   }
 
-let move_window_in_workspace default_full_view default_maximum_visible
-    target_workspace state =
+let move_window_in_workspace target_workspace state =
   let current_workspace = state.current_workspace in
   match target_workspace current_workspace with
   | Some target_workspace -> (
@@ -61,6 +64,7 @@ let move_window_in_workspace default_full_view default_maximum_visible
               let window = List.nth l f in
               let ribbon = Ribbon.remove_window window ribbon in
               {
+                state with
                 windows =
                   Windows_registry.change_workspace window target_workspace
                     state.windows;
@@ -68,23 +72,22 @@ let move_window_in_workspace default_full_view default_maximum_visible
                 workspaces =
                   Workspaces_registry.add current_workspace ribbon
                     state.workspaces
-                  |> Workspaces_registry.register_window default_full_view
-                       default_maximum_visible target_workspace window;
+                  |> Workspaces_registry.register_window
+                       state.default_focus_view state.default_visible_windows
+                       target_workspace window;
               }
           | None -> state)
       | None -> state)
   | None -> state
 
-let move_window_up default_full_view default_maximum_visible =
-  move_window_in_workspace default_full_view default_maximum_visible
-    (fun current ->
+let move_window_up =
+  move_window_in_workspace (fun current ->
       match int_of_string_opt current with
       | Some x when 0 < x -> Some (string_of_int (x - 1))
       | _ -> None)
 
-let move_window_down default_full_view default_maximum_visible =
-  move_window_in_workspace default_full_view default_maximum_visible
-    (fun current ->
+let move_window_down =
+  move_window_in_workspace (fun current ->
       match int_of_string_opt current with
       (* TODO: 6 should be configurable *)
       | Some x when x < 6 -> Some (string_of_int (x + 1))
@@ -150,8 +153,7 @@ let arrange_current_workspace ?previous_state ?force_focus state =
       arrange_workspace ?previous_state ?force_focus ~socket
         state.current_workspace state)
 
-let register_window default_full_view default_maximum_visible workspace state
-    (tree : Node.t) =
+let register_window workspace state (tree : Node.t) =
   match tree.node_type with
   | Con ->
       let id = tree.id in
@@ -160,8 +162,8 @@ let register_window default_full_view default_maximum_visible workspace state
       {
         state with
         workspaces =
-          Workspaces_registry.register_window default_full_view
-            default_maximum_visible workspace id state.workspaces;
+          Workspaces_registry.register_window state.default_focus_view
+            state.default_visible_windows workspace id state.workspaces;
         windows =
           Windows_registry.register id { app_id; workspace; name } state.windows;
       }
@@ -197,7 +199,7 @@ let unregister_window state window =
       { state with windows; workspaces }
   | None -> state
 
-let init default_full_view default_maximum_visible =
+let init () =
   let cw = Sway_ipc.get_current_workspace () in
   let tree = Sway_ipc.get_tree () in
   let workspaces = Node.filter (fun x -> x.node_type = Workspace) tree in
@@ -205,10 +207,7 @@ let init default_full_view default_maximum_visible =
     (fun state workspace ->
       match workspace.Node.name with
       | Some workspace_name ->
-          Node.fold state
-            (register_window default_full_view default_maximum_visible
-               workspace_name)
-            workspace
+          Node.fold state (register_window workspace_name) workspace
       | None -> state)
     (empty cw.name) workspaces
 
@@ -238,6 +237,10 @@ let client_command_handle :
    | Run_command cmd ->
        let res =
          match cmd with
+         | Default (Focus_view, default_focus_view) ->
+             ({ state with default_focus_view }, false, None)
+         | Default (Visible_windows, default_visible_windows) ->
+             ({ state with default_visible_windows }, false, None)
          | Focus Prev ->
              ( {
                  state with
@@ -274,8 +277,8 @@ let client_command_handle :
              (move_window_left state.current_workspace state, true, None)
          | Move Right ->
              (move_window_right state.current_workspace state, true, None)
-         | Move Up -> (move_window_up false 2 state, true, None)
-         | Move Down -> (move_window_down false 2 state, true, None)
+         | Move Up -> (move_window_up state, true, None)
+         | Move Down -> (move_window_down state, true, None)
          | Maximize Toggle ->
              (toggle_full_view state.current_workspace state, true, None)
          | Maximize _ ->
