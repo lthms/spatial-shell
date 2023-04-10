@@ -58,3 +58,18 @@ bindsym $mod+g exec $spatialmsg "split decrement"
 # Increase the number of windows to display when in split mode.
 bindsym $mod+h exec $spatialmsg "split increment"
 ```
+## Installing From Source
+
+You will need `opam`.
+
+```bash
+# install dependencies
+make build-deps
+# build the daemon
+dune build --release bin/spatial/main.exe
+# build the client
+dune build --release bin/spatialmsg/main.exe
+# install both
+sudo cp _build/default/bin/spatial/main.exe /usr/local/bin/spatial
+sudo cp _build/default/bin/spatialmsg/main.exe /usr/local/bin/spatialmsg
+```
