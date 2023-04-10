@@ -56,9 +56,10 @@ let operation_of_string_opt = function
 let operation_to_string = function Incr -> "increment" | Decr -> "decrement"
 
 type 'a builtin = Visible_windows : int builtin | Focus_view : bool builtin
+type 'a scoped = { workspace : int option; builtin : 'a builtin }
 
 type command =
-  | Default : 'a builtin * 'a -> command
+  | Default : 'a scoped * 'a -> command
   | Focus of target
   | Workspace of target
   | Move of move_target
@@ -67,14 +68,26 @@ type command =
 
 let ( <$> ) = Option.map
 
+let ( <*> ) f x =
+  match (f, x) with Some f, Some x -> Some (f x) | _, _ -> None
+
 let command_of_string str =
   String.split_on_char ' ' str
   |> List.filter (function "" -> false | _ -> true)
   |> function
   | [ "default"; "focus"; x ] ->
-      (fun x -> Default (Focus_view, x)) <$> bool_of_string_opt x
+      (fun x -> Default ({ workspace = None; builtin = Focus_view }, x))
+      <$> bool_of_string_opt x
+  | [ "workspace"; ws; "default"; "focus"; x ] ->
+      (fun x ws -> Default ({ workspace = Some ws; builtin = Focus_view }, x))
+      <$> bool_of_string_opt x <*> int_of_string_opt ws
   | [ "default"; "columns"; x ] ->
-      (fun x -> Default (Visible_windows, x)) <$> int_of_string_opt x
+      (fun x -> Default ({ workspace = None; builtin = Visible_windows }, x))
+      <$> int_of_string_opt x
+  | [ "workspace"; ws; "default"; "columns"; x ] ->
+      (fun x ws ->
+        Default ({ workspace = Some ws; builtin = Visible_windows }, x))
+      <$> int_of_string_opt x <*> int_of_string_opt ws
   | [ "focus"; target ] -> (fun x -> Focus x) <$> target_of_string_opt target
   | [ "workspace"; target ] ->
       (fun x -> Workspace x) <$> target_of_string_opt target
@@ -90,9 +103,16 @@ let command_of_string_exn str =
   | None -> raise (Invalid_argument "Spatial_ipc.command_of_string_exn")
 
 let command_to_string = function
-  | Default (Focus_view, x) ->
-      Format.(asprintf "default focus %a" pp_print_bool x)
-  | Default (Visible_windows, x) -> Format.asprintf "default columns %d" x
+  | Default ({ workspace; builtin = Focus_view }, x) ->
+      Format.(
+        asprintf "%adefault focus %a"
+          (pp_print_option (fun fmt x -> fprintf fmt "workspace %d " x))
+          workspace pp_print_bool x)
+  | Default ({ workspace; builtin = Visible_windows }, x) ->
+      Format.(
+        asprintf "%adefault columns %d"
+          (pp_print_option (fun fmt x -> fprintf fmt "workspace %d " x))
+          workspace x)
   | Focus dir -> Format.sprintf "focus %s" (target_to_string dir)
   | Workspace dir -> Format.sprintf "workspace %s" (target_to_string dir)
   | Move dir -> Format.sprintf "move %s" (move_target_to_string dir)

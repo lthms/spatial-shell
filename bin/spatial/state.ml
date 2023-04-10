@@ -1,11 +1,14 @@
 open Sway_ipc_types
+module Workspaces_map = Stdlib.Map.Make (String)
 
 type state = {
   current_workspace : string;
   windows : Windows_registry.t;
   workspaces : Workspaces_registry.t;
   default_focus_view : bool;
+  focus_view_per_workspace : bool Workspaces_map.t;
   default_visible_windows : int;
+  visible_windows_per_workspace : int Workspaces_map.t;
 }
 
 let empty current_workspace =
@@ -14,8 +17,28 @@ let empty current_workspace =
     windows = Windows_registry.empty;
     workspaces = Workspaces_registry.empty;
     default_focus_view = false;
+    focus_view_per_workspace = Workspaces_map.empty;
     default_visible_windows = 2;
+    visible_windows_per_workspace = Workspaces_map.empty;
   }
+
+let default_focus_view { default_focus_view; focus_view_per_workspace; _ }
+    workspace =
+  match Workspaces_map.find_opt workspace focus_view_per_workspace with
+  | Some x -> x
+  | None -> default_focus_view
+
+let default_visible_windows
+    { default_visible_windows; visible_windows_per_workspace; _ } workspace =
+  match Workspaces_map.find_opt workspace visible_windows_per_workspace with
+  | Some x -> x
+  | None -> default_visible_windows
+
+let internal_register_window state target_workspace window =
+  Workspaces_registry.register_window
+    (default_focus_view state target_workspace)
+    (default_visible_windows state target_workspace)
+    target_workspace window
 
 let set_current_workspace current_workspace state =
   { state with current_workspace }
@@ -72,9 +95,7 @@ let move_window_in_workspace target_workspace state =
                 workspaces =
                   Workspaces_registry.add current_workspace ribbon
                     state.workspaces
-                  |> Workspaces_registry.register_window
-                       state.default_focus_view state.default_visible_windows
-                       target_workspace window;
+                  |> internal_register_window state target_workspace window;
               }
           | None -> state)
       | None -> state)
@@ -162,8 +183,7 @@ let register_window workspace state (tree : Node.t) =
       {
         state with
         workspaces =
-          Workspaces_registry.register_window state.default_focus_view
-            state.default_visible_windows workspace id state.workspaces;
+          internal_register_window state workspace id state.workspaces;
         windows =
           Windows_registry.register id { app_id; workspace; name } state.windows;
       }
@@ -237,10 +257,34 @@ let client_command_handle :
    | Run_command cmd ->
        let res =
          match cmd with
-         | Default (Focus_view, default_focus_view) ->
+         | Default
+             ({ workspace = None; builtin = Focus_view }, default_focus_view) ->
              ({ state with default_focus_view }, false, None)
-         | Default (Visible_windows, default_visible_windows) ->
+         | Default ({ workspace = Some ws; builtin = Focus_view }, focus_view)
+           ->
+             ( {
+                 state with
+                 focus_view_per_workspace =
+                   Workspaces_map.add (string_of_int ws) focus_view
+                     state.focus_view_per_workspace;
+               },
+               false,
+               None )
+         | Default
+             ( { workspace = None; builtin = Visible_windows },
+               default_visible_windows ) ->
              ({ state with default_visible_windows }, false, None)
+         | Default
+             ( { workspace = Some ws; builtin = Visible_windows },
+               visible_windows ) ->
+             ( {
+                 state with
+                 visible_windows_per_workspace =
+                   Workspaces_map.add (string_of_int ws) visible_windows
+                     state.visible_windows_per_workspace;
+               },
+               false,
+               None )
          | Focus Prev ->
              ( {
                  state with

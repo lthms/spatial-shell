@@ -9,9 +9,10 @@ type move_target = Left | Right | Up | Down
 type switch = On | Off | Toggle
 type operation = Incr | Decr
 type 'a builtin = Visible_windows : int builtin | Focus_view : bool builtin
+type 'a scoped = { workspace : int option; builtin : 'a builtin }
 
 type command =
-  | Default : 'a builtin * 'a -> command
+  | Default : 'a scoped * 'a -> command
   | Focus of target
   | Workspace of target
   | Move of move_target
