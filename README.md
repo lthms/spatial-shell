@@ -65,11 +65,6 @@ You will need `opam`.
 ```bash
 # install dependencies
 make build-deps
-# build the daemon
-dune build --release bin/spatial/main.exe
-# build the client
-dune build --release bin/spatialmsg/main.exe
-# install both
-sudo cp _build/default/bin/spatial/main.exe /usr/local/bin/spatial
-sudo cp _build/default/bin/spatialmsg/main.exe /usr/local/bin/spatialmsg
+# install spatial
+make install
 ```
