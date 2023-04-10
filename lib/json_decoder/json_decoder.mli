@@ -98,9 +98,9 @@ val mu : ('a t -> 'a t) -> 'a t
 
     Here [decoder] will behave as expected.
 
-    {[
+    {v
       # Json_decoder.of_string decoder "{ \"value\": 3 , \"children\" : [] }" ;;
       - : tree option = Some {value = 3L; children = []}
       # Json_decoder.of_string decoder "{ \"value\": 3 , \"children\" : [ { \"value\": 5, \"children\": [] } ] }" ;;
       - : tree option = Some {value = 3L; children = [{value = 5L; children = []}]}
-    ]}*)
+    v}*)
