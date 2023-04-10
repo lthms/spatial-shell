@@ -9,7 +9,7 @@ let icon_of info =
   match info.app_id with
   | "firefox" -> Some ""
   | "kitty" -> Some ""
-  | "Electron" when String.ends_with ~suffix:"Slack" info.name -> Some ""
+  | "Slack" -> Some ""
   | "emacs" -> Some ""
   | _ -> None
 
