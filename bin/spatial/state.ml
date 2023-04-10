@@ -377,3 +377,17 @@ let pp fmt state =
     fprintf fmt "current_workspace: %s@ windows: %a@ workspaces: %a"
       state.current_workspace Windows_registry.pp state.windows
       Workspaces_registry.pp state.workspaces)
+
+let ( // ) = Filename.concat
+
+let load_config state =
+  let config =
+    Spatial_ipc.from_file
+      Filename.(Sys.getenv "HOME" // ".config" // "spatial" // "config")
+  in
+  List.fold_left
+    (fun state cmd ->
+      let (state, _, _), _ = client_command_handle state (Run_command cmd) in
+      state)
+    state
+    (Option.value ~default:[] config)

@@ -50,3 +50,4 @@ type ('a, 'b) handler = { handler : 'r. 'a -> 'r t -> 'b * 'r }
 val handle_next_command : socket:socket -> 'u -> ('u, 'v) handler -> 'v option
 val create_server : unit -> socket
 val accept : socket -> socket
+val from_file : string -> command list option

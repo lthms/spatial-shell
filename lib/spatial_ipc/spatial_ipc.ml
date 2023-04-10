@@ -237,3 +237,16 @@ let handle_next_command ~socket input { handler } =
 
 let create_server () = Socket.create_server socket_path
 let accept = Socket.accept
+
+let from_file path =
+  try
+    let ic = open_in path in
+
+    let rec read acc =
+      try
+        let line = input_line ic in
+        read (command_of_string_exn line :: acc)
+      with End_of_file -> List.rev acc
+    in
+    Some (read [])
+  with _ -> None
