@@ -1,15 +1,15 @@
-# spatial-sway
+# spatial
 
-`spatial-sway` implements a spatial model inspired by Material Shell
-and Paper WM, for Sway. More precisely, it organizes the windows in
-your workspaces as if they are on a loop, showing only a fixed number
-at a time.
+`spatial` implements a spatial model inspired by Material Shell and
+Paper WM, for Sway. More precisely, it organizes the windows in your
+workspaces as if they are on a loop, showing only a fixed number at
+a time.
 
 It is implemented as a daemon, communicating with Sway using your
 favorite tiling manager’s IPC protocol (if you are curious, have a
 look at `man sway-ipc`!).
 
-It is missing some features, but `spatial-sway` can already by used
+It is missing some features, but `spatial` can already by used
 today. Here is an example of a configuration that works.
 
 ```bash
@@ -48,7 +48,7 @@ bindsym $mod+r exec $spatialmsg "workspace prev"
 bindsym $mod+s exec $spatialmsg "workspace next"
 
 # Toggle between a mode where only one window is visible (maximized
-# mode), or a fixed numbers (split mode). spatial-sway will remember
+# mode), or a fixed numbers (split mode). spatial will remember
 # how may windows you want visible when not in full view mode.
 bindsym $mod+space exec $spatialmsg "maximize toggle"
 
