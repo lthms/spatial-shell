@@ -13,6 +13,7 @@ type state = {
   focus_view_per_workspace : bool Workspaces_map.t;
   default_visible_windows : int;
   visible_windows_per_workspace : int Workspaces_map.t;
+  background_process : (int * bool) option;
 }
 
 let empty current_workspace =
@@ -24,6 +25,7 @@ let empty current_workspace =
     focus_view_per_workspace = Workspaces_map.empty;
     default_visible_windows = 2;
     visible_windows_per_workspace = Workspaces_map.empty;
+    background_process = None;
   }
 
 let default_focus_view { default_focus_view; focus_view_per_workspace; _ }
@@ -240,6 +242,43 @@ let send_command_workspace : Spatial_ipc.target -> state -> unit =
       @@ Sway_ipc.send_command
            (Run_command [ Workspace (string_of_int target) ])
   | None -> ()
+
+let spawn_black state =
+  let pid = Jobs.spawn "swaybg -c '#000000'" in
+  { state with background_process = Some (pid, false) }
+
+let spawn_swaybg state =
+  let pid =
+    Jobs.spawn
+      "swaybg -i ${HOME}/.config/spatial/wallpaper.jpg -m fit -c '#000000'"
+  in
+  { state with background_process = Some (pid, true) }
+
+let handle_background state =
+  match
+    Workspaces_registry.find_opt state.current_workspace state.workspaces
+  with
+  | Some workspace -> (
+      match (workspace.visible, state.background_process) with
+      | Some _, Some (pid, true) ->
+          let state = spawn_black state in
+          Jobs.kill pid;
+          state
+      | None, Some (pid, false) ->
+          let state = spawn_swaybg state in
+          Jobs.kill ~wait:0.15 pid;
+          state
+      | None, None -> spawn_swaybg state
+      | Some _, None -> spawn_black state
+      | None, Some (_, true) | Some _, Some (_, false) -> state)
+  | None -> (
+      match state.background_process with
+      | Some (pid, false) ->
+          let state = spawn_swaybg state in
+          Jobs.kill ~wait:0.15 pid;
+          state
+      | Some (_, true) -> state
+      | None -> spawn_swaybg state)
 
 let client_command_handle :
     type a. state -> a Spatial_ipc.t -> (state * bool * int64 option) * a =

@@ -100,10 +100,14 @@ let rec go poll state sway_socket server_socket =
                   Unix.close fd;
                   (state, arrange, force_focus))
         in
-        if arrange then (
-          (* TODO: Be more configurable about that *)
-          ignore (Jobs.shell "/usr/bin/pkill -SIGRTMIN+8 waybar");
-          State.arrange_current_workspace ~previous_state ?force_focus state);
+        let state =
+          if arrange then (
+            (* TODO: Be more configurable about that *)
+            ignore (Jobs.shell "/usr/bin/pkill -SIGRTMIN+8 waybar");
+            State.arrange_current_workspace ~previous_state ?force_focus state;
+            State.handle_background state)
+          else state
+        in
         Poll.clear poll;
         go poll state sway_socket server_socket
   with Unix.Unix_error (EINTR, _, _) ->
@@ -121,7 +125,7 @@ let () =
   Unix.set_nonblock server_socket;
   Poll.(set poll server_socket Event.read);
 
-  let state = State.init () in
+  let state = State.(init () |> handle_background) in
   State.arrange_current_workspace state;
 
   try go poll state sway_socket server_socket with
