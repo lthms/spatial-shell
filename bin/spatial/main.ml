@@ -117,7 +117,7 @@ let () =
   Unix.set_nonblock server_socket;
   Poll.(set poll server_socket Event.read);
 
-  let state = State.(init () |> load_config) in
+  let state = State.init () in
   State.arrange_current_workspace state;
 
   try go poll state sway_socket server_socket with

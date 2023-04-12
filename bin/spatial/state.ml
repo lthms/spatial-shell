@@ -219,18 +219,6 @@ let unregister_window state window =
       { state with windows; workspaces }
   | None -> state
 
-let init () =
-  let cw = Sway_ipc.get_current_workspace () in
-  let tree = Sway_ipc.get_tree () in
-  let workspaces = Node.filter (fun x -> x.node_type = Workspace) tree in
-  List.fold_left
-    (fun state workspace ->
-      match workspace.Node.name with
-      | Some workspace_name ->
-          Node.fold state (register_window workspace_name) workspace
-      | None -> state)
-    (empty cw.name) workspaces
-
 (* TODO: Make it configurable *)
 let max_workspace = 6
 
@@ -391,3 +379,16 @@ let load_config state =
       state)
     state
     (Option.value ~default:[] config)
+
+let init () =
+  let cw = Sway_ipc.get_current_workspace () in
+  let tree = Sway_ipc.get_tree () in
+  let workspaces = Node.filter (fun x -> x.node_type = Workspace) tree in
+  List.fold_left
+    (fun state workspace ->
+      match workspace.Node.name with
+      | Some workspace_name ->
+          Node.fold state (register_window workspace_name) workspace
+      | None -> state)
+    (empty cw.name |> load_config)
+    workspaces
