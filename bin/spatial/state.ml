@@ -288,12 +288,9 @@ let client_command_handle :
    | Run_command cmd ->
        let res =
          match cmd with
-         | Default
-             ({ workspace = Unscoped; setting = Focus_view }, default_focus_view)
-           ->
+         | Set_focus_default (None, default_focus_view) ->
              ({ state with default_focus_view }, false, None)
-         | Default ({ workspace = Scoped ws; setting = Focus_view }, focus_view)
-           ->
+         | Set_focus_default (Some ws, focus_view) ->
              ( {
                  state with
                  focus_view_per_workspace =
@@ -302,13 +299,9 @@ let client_command_handle :
                },
                false,
                None )
-         | Default
-             ( { workspace = Unscoped; setting = Visible_windows },
-               default_visible_windows ) ->
+         | Set_visible_windows_default (None, default_visible_windows) ->
              ({ state with default_visible_windows }, false, None)
-         | Default
-             ( { workspace = Scoped ws; setting = Visible_windows },
-               visible_windows ) ->
+         | Set_visible_windows_default (Some ws, visible_windows) ->
              ( {
                  state with
                  visible_windows_per_workspace =

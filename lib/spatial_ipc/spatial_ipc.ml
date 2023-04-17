@@ -58,36 +58,18 @@ let operation_parser =
 
 let operation_to_string = function Incr -> "increment" | Decr -> "decrement"
 
-type scoped = Mk_scoped
-type unscoped = Mk_unscoped
-
-type ('a, _) setting =
-  | Visible_windows : (int, 'scope) setting
-  | Focus_view : (bool, 'scope) setting
-
-type _ scope = Scoped : int -> scoped scope | Unscoped : unscoped scope
-
 let workspace_scope_parser =
   let open Miam in
-  let+ x =
-    whitespaces *> string "[workspace=" *> workspace_parser
-    <* string "]" <* whitespaces
-  in
-  Scoped x
-
-let unscoped_parser = Miam.(word "[workspace=*]" *> return Unscoped)
-
-let workspace_of_scope : type s. s scope -> int option = function
-  | Scoped ws -> Some ws
-  | Unscoped -> None
-
-type ('a, 'scope) default = {
-  workspace : 'scope scope;
-  setting : ('a, 'scope) setting;
-}
+  (let+ x =
+     whitespaces *> string "[workspace=" *> workspace_parser
+     <* string "]" <* whitespaces
+   in
+   Some x)
+  <|> return None
 
 type command =
-  | Default : ('a, 'scope) default * 'a -> command
+  | Set_focus_default of int option * bool
+  | Set_visible_windows_default of int option * int
   | Focus of target
   | Workspace of target
   | Move of move_target
@@ -98,30 +80,15 @@ let bool_parser =
   let open Miam in
   enum [ ("true", true); ("false", false) ]
 
-let focus_view_parser workspace =
-  let open Miam in
-  let+ b = word "default" *> word "focus" *> bool_parser in
-  Default ({ workspace; setting = Focus_view }, b)
-
-let visible_windows_parser workspace =
-  let open Miam in
-  let+ i = word "default" *> word "visible" *> word "windows" *> int in
-  assert (1 < i);
-  Default ({ workspace; setting = Visible_windows }, i)
-
-type arbitrary_default_parser = { parser : 'a. 'a scope -> command Miam.parser }
-
-let arbitrary_default_parser p =
-  let open Miam in
-  (let* scope = workspace_scope_parser in
-   p.parser scope)
-  <|> let* unscoped = unscoped_parser in
-      p.parser unscoped
-
 let command_parser =
   let open Miam in
-  arbitrary_default_parser { parser = focus_view_parser }
-  <|> arbitrary_default_parser { parser = visible_windows_parser }
+  (let+ ws = workspace_scope_parser
+   and+ b = word "default" *> word "focus" *> bool_parser in
+   Set_focus_default (ws, b))
+  <|> (let+ ws = workspace_scope_parser
+       and+ i = word "default" *> word "visible" *> word "windows" *> int in
+       assert (1 < i);
+       Set_visible_windows_default (ws, i))
   <|> (let+ target = word "focus" *> target_parser in
        Focus target)
   <|> (let+ target = word "workspace" *> target_parser in
@@ -132,9 +99,9 @@ let command_parser =
        Maximize switch)
   <|> (let+ op = operation_parser in
        Split op)
-  <* whitespaces <* empty
+  <* whitespaces
 
-let command_of_string = Miam.run command_parser
+let command_of_string = Miam.(run (command_parser <* empty))
 
 let command_of_string_exn str =
   match command_of_string str with
@@ -142,22 +109,20 @@ let command_of_string_exn str =
   | None -> raise (Invalid_argument "Spatial_ipc.command_of_string_exn")
 
 let command_to_string = function
-  | Default ({ workspace; setting = Focus_view }, x) ->
+  | Set_focus_default (workspace, x) ->
       Format.(
         asprintf "%adefault focus %a"
           (pp_print_option
              ~none:(fun fmt () -> fprintf fmt "[workspace=*]")
              (fun fmt x -> fprintf fmt "[workspace=%d] " x))
-          (workspace_of_scope workspace)
-          pp_print_bool x)
-  | Default ({ workspace; setting = Visible_windows }, x) ->
+          workspace pp_print_bool x)
+  | Set_visible_windows_default (workspace, x) ->
       Format.(
         asprintf "%adefault columns %d"
           (pp_print_option
              ~none:(fun fmt () -> fprintf fmt "[workspace=*]")
              (fun fmt x -> fprintf fmt "[workspace=%d] " x))
-          (workspace_of_scope workspace)
-          x)
+          workspace x)
   | Focus dir -> Format.sprintf "focus %s" (target_to_string dir)
   | Workspace dir -> Format.sprintf "workspace %s" (target_to_string dir)
   | Move dir -> Format.sprintf "move %s" (move_target_to_string dir)
