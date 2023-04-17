@@ -67,7 +67,14 @@ let toggle_full_view workspace state =
     workspaces =
       Workspaces_registry.update workspace
         (function
-          | Some ribbon -> Some (Ribbon.toggle_full_view ribbon) | None -> None)
+          | Some ribbon -> Some (Ribbon.toggle_full_view ribbon)
+          | None ->
+              Some
+                Ribbon.(
+                  toggle_full_view
+                  @@ empty
+                       (default_focus_view state state.current_workspace)
+                       (default_visible_windows state state.current_workspace)))
         state.workspaces;
   }
 
@@ -139,7 +146,13 @@ let incr_maximum_visible_size workspace state =
       Workspaces_registry.update workspace
         (function
           | Some ribbon -> Some (Ribbon.incr_maximum_visible ribbon)
-          | None -> None)
+          | None ->
+              Some
+                Ribbon.(
+                  incr_maximum_visible
+                  @@ empty
+                       (default_focus_view state state.current_workspace)
+                       (default_visible_windows state state.current_workspace)))
         state.workspaces;
   }
 
@@ -150,7 +163,13 @@ let decr_maximum_visible_size workspace state =
       Workspaces_registry.update workspace
         (function
           | Some ribbon -> Some (Ribbon.decr_maximum_visible ribbon)
-          | None -> None)
+          | None ->
+              Some
+                Ribbon.(
+                  decr_maximum_visible
+                  @@ empty
+                       (default_focus_view state state.current_workspace)
+                       (default_visible_windows state state.current_workspace)))
         state.workspaces;
   }
 
