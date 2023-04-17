@@ -7,14 +7,23 @@ open Mltp_ipc
 let socket_path = "/tmp/spatial-sway.socket"
 let magic_string = "spatial-ipc"
 
+let pos_int =
+  let open Miam in
+  let+ ws = int in
+  assert (0 <= ws);
+  ws
+
+let index_parser = pos_int
+let workspace_parser = pos_int
+
 type target = Prev | Next | Index of int
 
-let target_of_string_opt = function
-  | "prev" -> Some Prev
-  | "next" -> Some Next
-  | x ->
-      Option.bind (int_of_string_opt x) @@ fun x ->
-      if 0 <= x then Some (Index x) else None
+let target_parser =
+  let open Miam in
+  string "prev" *> return Prev
+  <|> string "next" *> return Next
+  <|> let+ x = index_parser in
+      Index x
 
 let target_to_string = function
   | Prev -> "prev"
@@ -23,12 +32,9 @@ let target_to_string = function
 
 type move_target = Left | Right | Up | Down
 
-let move_target_of_string_opt = function
-  | "left" -> Some Left
-  | "right" -> Some Right
-  | "up" -> Some Up
-  | "down" -> Some Down
-  | _ -> None
+let move_target_parser =
+  let open Miam in
+  enum [ ("left", Left); ("right", Right); ("up", Up); ("down", Down) ]
 
 let move_target_to_string = function
   | Left -> "left"
@@ -38,20 +44,17 @@ let move_target_to_string = function
 
 type switch = On | Off | Toggle
 
-let switch_of_string_opt = function
-  | "on" -> Some On
-  | "off" -> Some Off
-  | "toggle" -> Some Toggle
-  | _ -> None
+let switch_parser =
+  let open Miam in
+  enum [ ("on", On); ("off", Off); ("toggle", Toggle) ]
 
 let switch_to_string = function On -> "on" | Off -> "off" | Toggle -> "toggle"
 
 type operation = Incr | Decr
 
-let operation_of_string_opt = function
-  | "increment" -> Some Incr
-  | "decrement" -> Some Decr
-  | _ -> None
+let operation_parser =
+  let open Miam in
+  enum [ ("increment", Incr); ("decrement", Decr) ]
 
 let operation_to_string = function Incr -> "increment" | Decr -> "decrement"
 
@@ -63,6 +66,16 @@ type ('a, _) setting =
   | Focus_view : (bool, 'scope) setting
 
 type _ scope = Scoped : int -> scoped scope | Unscoped : unscoped scope
+
+let workspace_scope_parser =
+  let open Miam in
+  let+ x =
+    whitespaces *> string "[workspace=" *> workspace_parser
+    <* string "]" <* whitespaces
+  in
+  Scoped x
+
+let unscoped_parser = Miam.(word "[workspace=*]" *> return Unscoped)
 
 let workspace_of_scope : type s. s scope -> int option = function
   | Scoped ws -> Some ws
@@ -81,37 +94,47 @@ type command =
   | Maximize of switch
   | Split of operation
 
-let ( <$> ) = Option.map
+let bool_parser =
+  let open Miam in
+  enum [ ("true", true); ("false", false) ]
 
-let ( <*> ) f x =
-  match (f, x) with Some f, Some x -> Some (f x) | _, _ -> None
+let focus_view_parser workspace =
+  let open Miam in
+  let+ b = word "default" *> word "focus" *> bool_parser in
+  Default ({ workspace; setting = Focus_view }, b)
 
-let command_of_string str =
-  String.split_on_char ' ' str
-  |> List.filter (function "" -> false | _ -> true)
-  |> function
-  | [ "default"; "focus"; x ] ->
-      (fun x -> Default ({ workspace = Unscoped; setting = Focus_view }, x))
-      <$> bool_of_string_opt x
-  | [ "workspace"; ws; "default"; "focus"; x ] ->
-      (fun x ws -> Default ({ workspace = Scoped ws; setting = Focus_view }, x))
-      <$> bool_of_string_opt x <*> int_of_string_opt ws
-  | [ "default"; "columns"; x ] ->
-      (fun x ->
-        Default ({ workspace = Unscoped; setting = Visible_windows }, x))
-      <$> int_of_string_opt x
-  | [ "workspace"; ws; "default"; "columns"; x ] ->
-      (fun x ws ->
-        Default ({ workspace = Scoped ws; setting = Visible_windows }, x))
-      <$> int_of_string_opt x <*> int_of_string_opt ws
-  | [ "focus"; target ] -> (fun x -> Focus x) <$> target_of_string_opt target
-  | [ "workspace"; target ] ->
-      (fun x -> Workspace x) <$> target_of_string_opt target
-  | [ "move"; target ] -> (fun x -> Move x) <$> move_target_of_string_opt target
-  | [ "maximize"; switch ] ->
-      (fun x -> Maximize x) <$> switch_of_string_opt switch
-  | [ "split"; op ] -> (fun x -> Split x) <$> operation_of_string_opt op
-  | _ -> None
+let visible_windows_parser workspace =
+  let open Miam in
+  let+ i = word "default" *> word "visible" *> word "windows" *> int in
+  assert (1 < i);
+  Default ({ workspace; setting = Visible_windows }, i)
+
+type arbitrary_default_parser = { parser : 'a. 'a scope -> command Miam.parser }
+
+let arbitrary_default_parser p =
+  let open Miam in
+  (let* scope = workspace_scope_parser in
+   p.parser scope)
+  <|> let* unscoped = unscoped_parser in
+      p.parser unscoped
+
+let command_parser =
+  let open Miam in
+  arbitrary_default_parser { parser = focus_view_parser }
+  <|> arbitrary_default_parser { parser = visible_windows_parser }
+  <|> (let+ target = word "focus" *> target_parser in
+       Focus target)
+  <|> (let+ target = word "workspace" *> target_parser in
+       Workspace target)
+  <|> (let+ target = word "move" *> move_target_parser in
+       Move target)
+  <|> (let+ switch = switch_parser in
+       Maximize switch)
+  <|> (let+ op = operation_parser in
+       Split op)
+  <* whitespaces <* empty
+
+let command_of_string = Miam.run command_parser
 
 let command_of_string_exn str =
   match command_of_string str with
@@ -122,13 +145,17 @@ let command_to_string = function
   | Default ({ workspace; setting = Focus_view }, x) ->
       Format.(
         asprintf "%adefault focus %a"
-          (pp_print_option (fun fmt x -> fprintf fmt "workspace %d " x))
+          (pp_print_option
+             ~none:(fun fmt () -> fprintf fmt "[workspace=*]")
+             (fun fmt x -> fprintf fmt "[workspace=%d] " x))
           (workspace_of_scope workspace)
           pp_print_bool x)
   | Default ({ workspace; setting = Visible_windows }, x) ->
       Format.(
         asprintf "%adefault columns %d"
-          (pp_print_option (fun fmt x -> fprintf fmt "workspace %d " x))
+          (pp_print_option
+             ~none:(fun fmt () -> fprintf fmt "[workspace=*]")
+             (fun fmt x -> fprintf fmt "[workspace=%d] " x))
           (workspace_of_scope workspace)
           x)
   | Focus dir -> Format.sprintf "focus %s" (target_to_string dir)
@@ -212,6 +239,8 @@ let to_raw_message : type a. a t -> Raw_message.t = function
   | Get_workspaces -> (2l, "")
 
 type packed = Packed : 'a t -> packed
+
+let ( <$> ) = Option.map
 
 let of_raw_message (op, payload) =
   match op with
