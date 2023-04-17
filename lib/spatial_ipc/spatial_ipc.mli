@@ -33,10 +33,16 @@ type get_workspaces_reply = {
   windows : (int * window_info) list;
 }
 
+type get_workspace_config_reply = {
+  maximized : bool;
+  maximum_visible_windows : int;
+}
+
 type 'a t =
   | Run_command : command -> run_command_reply t
   | Get_windows : get_windows_reply t
   | Get_workspaces : get_workspaces_reply t
+  | Get_workspace_config : get_workspace_config_reply t
 
 type socket = Unix.file_descr
 

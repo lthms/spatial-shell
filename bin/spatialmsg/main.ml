@@ -79,4 +79,10 @@ let () =
                  (fun fmt k ->
                    Format.printf "%d:%s" k (workspace_icon k reply.windows)))
               (List.init 6 (fun x -> x + 1))))
+  | "get_workspace_config" ->
+      let reply = send_command Get_workspace_config in
+      Format.(
+        printf "%s  %d"
+          (if reply.maximized then "" else "")
+          reply.maximum_visible_windows)
   | _ -> exit 2

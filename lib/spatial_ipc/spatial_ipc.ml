@@ -172,15 +172,32 @@ let get_workspaces_reply_encoding : get_workspaces_reply Data_encoding.t =
     (obj2 (req "current" int31)
        (req "windows" @@ list (tup2 int31 window_info_encoding)))
 
+type get_workspace_config_reply = {
+  maximized : bool;
+  maximum_visible_windows : int;
+}
+
+let get_workspace_config_reply_encoding :
+    get_workspace_config_reply Data_encoding.t =
+  let open Data_encoding in
+  conv
+    (fun { maximized; maximum_visible_windows } ->
+      (maximized, maximum_visible_windows))
+    (fun (maximized, maximum_visible_windows) ->
+      { maximized; maximum_visible_windows })
+    (obj2 (req "maximized" bool) (req "maximum_visible_windows" int31))
+
 type 'a t =
   | Run_command : command -> run_command_reply t
   | Get_windows : get_windows_reply t
   | Get_workspaces : get_workspaces_reply t
+  | Get_workspace_config : get_workspace_config_reply t
 
 let reply_encoding : type a. a t -> a Data_encoding.t = function
   | Run_command _ -> run_command_reply_encoding
   | Get_windows -> get_windows_reply_encoding
   | Get_workspaces -> get_workspaces_reply_encoding
+  | Get_workspace_config -> get_workspace_config_reply_encoding
 
 let reply_to_string : type a. a t -> a -> string =
  fun cmd reply ->
@@ -206,6 +223,7 @@ let to_raw_message : type a. a t -> Raw_message.t = function
   | Run_command cmd -> (0l, command_to_string cmd)
   | Get_windows -> (1l, "")
   | Get_workspaces -> (2l, "")
+  | Get_workspace_config -> (3l, "")
 
 type packed = Packed : 'a t -> packed
 
@@ -216,6 +234,7 @@ let of_raw_message (op, payload) =
   | 0l -> (fun x -> Packed (Run_command x)) <$> command_of_string payload
   | 1l -> Some (Packed Get_windows)
   | 2l -> Some (Packed Get_workspaces)
+  | 3l -> Some (Packed Get_workspace_config)
   | _ -> None
 
 type socket = Socket.socket

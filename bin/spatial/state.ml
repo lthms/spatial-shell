@@ -406,6 +406,22 @@ let client_command_handle :
                        (Ribbon.all_windows ribbon);
                  }
              | None -> { focus = None; windows = [] }) ))
+   | Get_workspace_config -> (
+       ( (state, false, None),
+         match
+           Workspaces_registry.find_opt state.current_workspace state.workspaces
+         with
+         | Some workspace ->
+             {
+               maximized = workspace.full_view;
+               maximum_visible_windows = workspace.maximum_visible_size;
+             }
+         | None ->
+             {
+               maximized = default_focus_view state state.current_workspace;
+               maximum_visible_windows =
+                 default_visible_windows state state.current_workspace;
+             } ))
     : _ * a)
 
 let pp fmt state =
