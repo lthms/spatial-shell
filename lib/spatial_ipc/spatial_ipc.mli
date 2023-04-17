@@ -8,11 +8,33 @@ type target = Prev | Next | Index of int
 type move_target = Left | Right | Up | Down
 type switch = On | Off | Toggle
 type operation = Incr | Decr
-type 'a builtin = Visible_windows : int builtin | Focus_view : bool builtin
-type 'a scoped = { workspace : int option; builtin : 'a builtin }
+
+type scoped
+(** Phantom type to mark default settings which can be specialized per
+    workspace. *)
+
+type unscoped
+(** Phantom type to mark default settings which cannot be specialized per
+    workspace. *)
+
+(** The scope of a default setting, that is weither is applies to all
+    workspace, or only one in particular. *)
+type _ scope = Scoped : int -> scoped scope | Unscoped : unscoped scope
+
+(** The list of settings which can be personalized, along with their expected
+    scopes. *)
+type ('a, _) setting =
+  | Visible_windows : (int, 'scope) setting
+  | Focus_view : (bool, 'scope) setting
+
+type ('a, 'scope) default = {
+  workspace : 'scope scope;
+  setting : ('a, 'scope) setting;
+}
+(** A command to assign a default value for a given setting and a given scope. *)
 
 type command =
-  | Default : 'a scoped * 'a -> command
+  | Default : ('a, 'scope) default * 'a -> command
   | Focus of target
   | Workspace of target
   | Move of move_target

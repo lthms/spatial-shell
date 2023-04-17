@@ -55,11 +55,26 @@ let operation_of_string_opt = function
 
 let operation_to_string = function Incr -> "increment" | Decr -> "decrement"
 
-type 'a builtin = Visible_windows : int builtin | Focus_view : bool builtin
-type 'a scoped = { workspace : int option; builtin : 'a builtin }
+type scoped = Mk_scoped
+type unscoped = Mk_unscoped
+
+type ('a, _) setting =
+  | Visible_windows : (int, 'scope) setting
+  | Focus_view : (bool, 'scope) setting
+
+type _ scope = Scoped : int -> scoped scope | Unscoped : unscoped scope
+
+let workspace_of_scope : type s. s scope -> int option = function
+  | Scoped ws -> Some ws
+  | Unscoped -> None
+
+type ('a, 'scope) default = {
+  workspace : 'scope scope;
+  setting : ('a, 'scope) setting;
+}
 
 type command =
-  | Default : 'a scoped * 'a -> command
+  | Default : ('a, 'scope) default * 'a -> command
   | Focus of target
   | Workspace of target
   | Move of move_target
@@ -76,17 +91,18 @@ let command_of_string str =
   |> List.filter (function "" -> false | _ -> true)
   |> function
   | [ "default"; "focus"; x ] ->
-      (fun x -> Default ({ workspace = None; builtin = Focus_view }, x))
+      (fun x -> Default ({ workspace = Unscoped; setting = Focus_view }, x))
       <$> bool_of_string_opt x
   | [ "workspace"; ws; "default"; "focus"; x ] ->
-      (fun x ws -> Default ({ workspace = Some ws; builtin = Focus_view }, x))
+      (fun x ws -> Default ({ workspace = Scoped ws; setting = Focus_view }, x))
       <$> bool_of_string_opt x <*> int_of_string_opt ws
   | [ "default"; "columns"; x ] ->
-      (fun x -> Default ({ workspace = None; builtin = Visible_windows }, x))
+      (fun x ->
+        Default ({ workspace = Unscoped; setting = Visible_windows }, x))
       <$> int_of_string_opt x
   | [ "workspace"; ws; "default"; "columns"; x ] ->
       (fun x ws ->
-        Default ({ workspace = Some ws; builtin = Visible_windows }, x))
+        Default ({ workspace = Scoped ws; setting = Visible_windows }, x))
       <$> int_of_string_opt x <*> int_of_string_opt ws
   | [ "focus"; target ] -> (fun x -> Focus x) <$> target_of_string_opt target
   | [ "workspace"; target ] ->
@@ -103,16 +119,18 @@ let command_of_string_exn str =
   | None -> raise (Invalid_argument "Spatial_ipc.command_of_string_exn")
 
 let command_to_string = function
-  | Default ({ workspace; builtin = Focus_view }, x) ->
+  | Default ({ workspace; setting = Focus_view }, x) ->
       Format.(
         asprintf "%adefault focus %a"
           (pp_print_option (fun fmt x -> fprintf fmt "workspace %d " x))
-          workspace pp_print_bool x)
-  | Default ({ workspace; builtin = Visible_windows }, x) ->
+          (workspace_of_scope workspace)
+          pp_print_bool x)
+  | Default ({ workspace; setting = Visible_windows }, x) ->
       Format.(
         asprintf "%adefault columns %d"
           (pp_print_option (fun fmt x -> fprintf fmt "workspace %d " x))
-          workspace x)
+          (workspace_of_scope workspace)
+          x)
   | Focus dir -> Format.sprintf "focus %s" (target_to_string dir)
   | Workspace dir -> Format.sprintf "workspace %s" (target_to_string dir)
   | Move dir -> Format.sprintf "move %s" (move_target_to_string dir)
