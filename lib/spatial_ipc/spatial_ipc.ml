@@ -98,9 +98,9 @@ let command_parser =
        Workspace target)
   <|> (let+ target = word "move" *> move_target_parser in
        Move target)
-  <|> (let+ switch = switch_parser in
+  <|> (let+ switch = word "maximize" *> switch_parser in
        Maximize switch)
-  <|> (let+ op = operation_parser in
+  <|> (let+ op = word "split" *> operation_parser in
        Split op)
   <* whitespaces
 
