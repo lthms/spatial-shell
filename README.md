@@ -58,6 +58,22 @@ bindsym $mod+g exec $spatialmsg "split decrement"
 # Increase the number of windows to display when in split mode.
 bindsym $mod+h exec $spatialmsg "split increment"
 ```
+
+It is also possible to customize `spatial` itself, by creating a configuration
+file at at `${HOME}/.config/spatial/config`.
+
+The syntax is heavily inspired by Sway’s.
+
+- `background "PATH"` will tell `spatial` to display the chosen background in
+  empty workspaces (using `swaybg`).
+- `default focus true|false` to decide whether or not `spatial` will prefer the
+  maximized view for first visited workspace or not. If prefixed by
+  `[workspace=n]`, then the rule only affects workspace `n`.
+- `default visible windows n` will tell `spatial` to limit the number of
+  visible windows in first visited workspaces to `n` (when the maximized mode
+  is disable). If prefixed by `[workspace=n]`, then the rule only affects
+  workspace `n`.
+
 ## Installing From Source
 
 You will need `opam`.
