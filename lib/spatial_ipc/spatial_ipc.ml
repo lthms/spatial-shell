@@ -70,6 +70,7 @@ let workspace_scope_parser =
 type command =
   | Set_focus_default of int option * bool
   | Set_visible_windows_default of int option * int
+  | Background of string
   | Focus of target
   | Workspace of target
   | Move of move_target
@@ -89,6 +90,8 @@ let command_parser =
        and+ i = word "default" *> word "visible" *> word "windows" *> int in
        assert (1 < i);
        Set_visible_windows_default (ws, i))
+  <|> (let+ path = word "background" *> quoted in
+       Background path)
   <|> (let+ target = word "focus" *> target_parser in
        Focus target)
   <|> (let+ target = word "workspace" *> target_parser in
@@ -123,6 +126,7 @@ let command_to_string = function
              ~none:(fun fmt () -> fprintf fmt "[workspace=*]")
              (fun fmt x -> fprintf fmt "[workspace=%d] " x))
           workspace x)
+  | Background path -> Format.sprintf "background \"%s\"" path
   | Focus dir -> Format.sprintf "focus %s" (target_to_string dir)
   | Workspace dir -> Format.sprintf "workspace %s" (target_to_string dir)
   | Move dir -> Format.sprintf "move %s" (move_target_to_string dir)

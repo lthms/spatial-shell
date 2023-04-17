@@ -14,6 +14,7 @@ type state = {
   default_visible_windows : int;
   visible_windows_per_workspace : int Workspaces_map.t;
   background_process : (int * bool) option;
+  background_path : string option;
 }
 
 let empty current_workspace =
@@ -26,6 +27,7 @@ let empty current_workspace =
     default_visible_windows = 2;
     visible_windows_per_workspace = Workspaces_map.empty;
     background_process = None;
+    background_path = None;
   }
 
 let default_focus_view { default_focus_view; focus_view_per_workspace; _ }
@@ -248,29 +250,36 @@ let spawn_black state =
   { state with background_process = Some (pid, false) }
 
 let spawn_swaybg state =
-  let pid =
-    Jobs.spawn
-      "swaybg -i ${HOME}/.config/spatial/wallpaper.jpg -m fit -c '#000000'"
-  in
-  { state with background_process = Some (pid, true) }
+  match state.background_path with
+  | Some path ->
+      let pid =
+        Jobs.spawn (Format.sprintf "swaybg -i %s -m fit -c '#000000'" path)
+      in
+      { state with background_process = Some (pid, true) }
+  | none -> spawn_black state
 
 let handle_background state =
   match
     Workspaces_registry.find_opt state.current_workspace state.workspaces
   with
   | Some workspace -> (
-      match (workspace.visible, state.background_process) with
-      | Some _, Some (pid, true) ->
+      match
+        (workspace.visible, state.background_process, state.background_path)
+      with
+      | Some _, Some (pid, true), Some _ ->
           let state = spawn_black state in
           Jobs.kill pid;
           state
-      | None, Some (pid, false) ->
+      | None, Some (pid, false), Some _ ->
           let state = spawn_swaybg state in
-          Jobs.kill ~wait:0.15 pid;
+          Jobs.kill ~wait:0.25 pid;
           state
-      | None, None -> spawn_swaybg state
-      | Some _, None -> spawn_black state
-      | None, Some (_, true) | Some _, Some (_, false) -> state)
+      | None, None, Some _ -> spawn_swaybg state
+      | None, None, None -> spawn_black state
+      | Some _, None, (Some _ | None) -> spawn_black state
+      | _, Some _, None | None, Some (_, true), _ | Some _, Some (_, false), _
+        ->
+          state)
   | None -> (
       match state.background_process with
       | Some (pid, false) ->
@@ -310,6 +319,8 @@ let client_command_handle :
                },
                false,
                None )
+         | Background path ->
+             ({ state with background_path = Some path }, true, None)
          | Focus Prev ->
              ( {
                  state with

@@ -73,6 +73,10 @@ let run parser str =
 let whitespaces = skip @@ take_while (fun c -> c = ' ' || c = '\t')
 let word str = whitespaces *> string str <* whitespaces
 
+let quoted =
+  let+ x = string "\"" *> take_while (( <> ) '"') <* string "\"" in
+  String.sub x.buffer x.base x.len
+
 let empty slice =
   assert (slice.Slice.len = 0);
   ((), slice)

@@ -38,4 +38,8 @@ val skip : 'a parser -> unit parser
 val whitespaces : unit parser
 val word : string -> unit parser
 val empty : unit parser
+
+val quoted : string parser
+(** [quoted] consumes a string encapsulated by quotes. *)
+
 val run : 'a parser -> string -> 'a option
