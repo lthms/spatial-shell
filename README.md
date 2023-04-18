@@ -1,16 +1,15 @@
-# spatial
+# Spatial Shell
 
-`spatial` implements a spatial model inspired by Material Shell and
-Paper WM, for Sway. More precisely, it organizes the windows in your
-workspaces as if they are on a loop, showing only a fixed number at
-a time.
+Spatial Shell implements a spatial model inspired by Material Shell and Paper
+WM, for Sway. More precisely, it organizes the windows in your workspaces as if
+they are on a loop, showing only a fixed number at a time.
 
-It is implemented as a daemon, communicating with Sway using your
-favorite tiling manager’s IPC protocol (if you are curious, have a
-look at `man sway-ipc`!).
+It is implemented as a daemon, communicating with Sway using your favorite
+tiling manager’s IPC protocol (if you are curious, have a look at `man
+sway-ipc`!).
 
-It is missing some features, but `spatial` can already by used
-today. Here is an example of a configuration that works.
+It is missing some features, but Spatial Shell can already by used today. Here
+is an example of a configuration that works.
 
 ```bash
 set $spatial "/usr/local/bin/spatial"
@@ -59,17 +58,17 @@ bindsym $mod+g exec $spatialmsg "split decrement"
 bindsym $mod+h exec $spatialmsg "split increment"
 ```
 
-It is also possible to customize `spatial` itself, by creating a configuration
-file at at `${HOME}/.config/spatial/config`.
+It is also possible to customize Spatial Shell itself, by creating a
+configuration file at at `${HOME}/.config/spatial/config`.
 
 The syntax is heavily inspired by Sway’s.
 
-- `background "PATH"` will tell `spatial` to display the chosen background in
-  empty workspaces (using `swaybg`).
-- `default focus true|false` to decide whether or not `spatial` will prefer the
-  maximized view for first visited workspace or not. If prefixed by
+- `background "PATH"` will tell Spatial Shell to display the chosen background
+  in empty workspaces (using `swaybg`).
+- `default focus true|false` to decide whether or not Spatial Shell will prefer
+  the maximized view for first visited workspace or not. If prefixed by
   `[workspace=n]`, then the rule only affects workspace `n`.
-- `default visible windows n` will tell `spatial` to limit the number of
+- `default visible windows n` will tell Spatial Shell to limit the number of
   visible windows in first visited workspaces to `n` (when the maximized mode
   is disable). If prefixed by `[workspace=n]`, then the rule only affects
   workspace `n`.

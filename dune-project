@@ -3,7 +3,7 @@
 (generate_opam_files true)
 
 (source
- (github lthms/spatial))
+ (github lthms/spatial-shell))
 
 (license mpl-2.0)
 
@@ -31,7 +31,7 @@
  (depends json-decoder mltp-ipc))
 
 (package
- (name spatial)
+ (name spatial-shell)
  (synopsis
   "Implementing a spatial model inspired by Material Shell and Paper WM, for Sway.")
  (depends data-encoding poll sway-ipc clap miam))
@@ -40,7 +40,7 @@
  (allow_empty)
  (name spatial-dev)
  (synopsis
-  "Virtual package gathering developers dependencies for hacking the spatial project")
+  "Virtual package gathering developers dependencies for hacking the Spatial Shell project")
  (depends
   ocaml-lsp-server
   odoc

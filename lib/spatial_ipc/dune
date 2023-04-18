@@ -1,4 +1,4 @@
 (library
  (name spatial_ipc)
- (public_name spatial.ipc)
+ (public_name spatial-shell.ipc)
  (libraries mltp-ipc data-encoding miam))
