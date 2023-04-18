@@ -2,7 +2,7 @@
 
 Spatial Shell implements a spatial model inspired by Material Shell and Paper
 WM, for Sway. More precisely, it organizes the windows in your workspaces as if
-they are on a loop, showing only a fixed number at a time.
+they are on a ribbon, showing only a fixed number at a time.
 
 It is implemented as a daemon, communicating with Sway using your favorite
 tiling manager’s IPC protocol (if you are curious, have a look at `man
