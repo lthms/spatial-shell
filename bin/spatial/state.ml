@@ -18,6 +18,15 @@ type state = {
   ignore_events : bool;
 }
 
+type state_update = {
+  state : state;
+  rearrange_workspace : bool;
+  force_focus : int64 option;
+}
+
+let no_visible_update state =
+  { state; rearrange_workspace = false; force_focus = None }
+
 let empty current_workspace =
   {
     current_workspace;
@@ -316,8 +325,8 @@ let handle_background state =
       | Some (_, false) | None -> spawn_swaybg state
       | Some (_, true) -> state)
 
-let client_command_handle :
-    type a. state -> a Spatial_ipc.t -> (state * bool * int64 option) * a =
+let client_command_handle : type a. state -> a Spatial_ipc.t -> state_update * a
+    =
  fun state cmd ->
   let open Spatial_ipc in
   (match cmd with
@@ -325,31 +334,37 @@ let client_command_handle :
        let res =
          match cmd with
          | Set_focus_default (None, default_focus_view) ->
-             ({ state with default_focus_view }, false, None)
+             let state = { state with default_focus_view } in
+             no_visible_update state
          | Set_focus_default (Some ws, focus_view) ->
-             ( {
+             let state =
+               {
                  state with
                  focus_view_per_workspace =
                    Workspaces_map.add (string_of_int ws) focus_view
                      state.focus_view_per_workspace;
-               },
-               false,
-               None )
+               }
+             in
+             no_visible_update state
          | Set_visible_windows_default (None, default_visible_windows) ->
-             ({ state with default_visible_windows }, false, None)
+             let state = { state with default_visible_windows } in
+             no_visible_update state
          | Set_visible_windows_default (Some ws, visible_windows) ->
-             ( {
+             let state =
+               {
                  state with
                  visible_windows_per_workspace =
                    Workspaces_map.add (string_of_int ws) visible_windows
                      state.visible_windows_per_workspace;
-               },
-               false,
-               None )
+               }
+             in
+             no_visible_update state
          | Background path ->
-             ({ state with background_path = Some path }, true, None)
+             let state = { state with background_path = Some path } in
+             { state; rearrange_workspace = true; force_focus = None }
          | Focus Prev ->
-             ( {
+             let state =
+               {
                  state with
                  workspaces =
                    Workspaces_registry.update state.current_workspace
@@ -357,11 +372,12 @@ let client_command_handle :
                        | Some ribbon -> Some (Ribbon.move_focus_left ribbon)
                        | None -> None)
                      state.workspaces;
-               },
-               true,
-               None )
+               }
+             in
+             { state; rearrange_workspace = true; force_focus = None }
          | Focus Next ->
-             ( {
+             let state =
+               {
                  state with
                  workspaces =
                    Workspaces_registry.update state.current_workspace
@@ -369,36 +385,46 @@ let client_command_handle :
                        | Some ribbon -> Some (Ribbon.move_focus_right ribbon)
                        | None -> None)
                      state.workspaces;
-               },
-               true,
-               None )
+               }
+             in
+             { state; rearrange_workspace = true; force_focus = None }
          | Focus (Index x) ->
-             (focus_index state.current_workspace state x, true, None)
+             let state = focus_index state.current_workspace state x in
+             { state; rearrange_workspace = true; force_focus = None }
          | Workspace dir ->
              (* Don’t update the state, but ask Sway to change the
                 current workspace instead. This will trigger an event
                 that we will eventually received. *)
              send_command_workspace dir state;
-             (state, false, None)
+             no_visible_update state
          | Move Left ->
-             (move_window_left state.current_workspace state, true, None)
+             let state = move_window_left state.current_workspace state in
+             { state; rearrange_workspace = true; force_focus = None }
          | Move Right ->
-             (move_window_right state.current_workspace state, true, None)
-         | Move Up -> (move_window_up state, true, None)
-         | Move Down -> (move_window_down state, true, None)
+             let state = move_window_right state.current_workspace state in
+             { state; rearrange_workspace = true; force_focus = None }
+         | Move Up ->
+             let state = move_window_up state in
+             { state; rearrange_workspace = true; force_focus = None }
+         | Move Down ->
+             let state = move_window_down state in
+             { state; rearrange_workspace = true; force_focus = None }
          | Maximize Toggle ->
-             (toggle_full_view state.current_workspace state, true, None)
+             let state = toggle_full_view state.current_workspace state in
+             { state; rearrange_workspace = true; force_focus = None }
          | Maximize _ ->
              (* TODO: implement [On] and [Off] cases *)
-             (state, false, None)
+             no_visible_update state
          | Split Incr ->
-             ( incr_maximum_visible_size state.current_workspace state,
-               true,
-               None )
+             let state =
+               incr_maximum_visible_size state.current_workspace state
+             in
+             { state; rearrange_workspace = true; force_focus = None }
          | Split Decr ->
-             ( decr_maximum_visible_size state.current_workspace state,
-               true,
-               None )
+             let state =
+               decr_maximum_visible_size state.current_workspace state
+             in
+             { state; rearrange_workspace = true; force_focus = None }
        in
        (res, { success = true })
    | Get_workspaces ->
@@ -414,12 +440,12 @@ let client_command_handle :
          Workspaces_registry.summary state.workspaces
          |> List.map (fun (k, w) -> (k, Windows_registry.find w state.windows))
        in
-       ((state, false, None), { current; windows })
+       (no_visible_update state, { current; windows })
    | Get_windows -> (
        let ribbon =
          Workspaces_registry.find_opt state.current_workspace state.workspaces
        in
-       ( (state, false, None),
+       ( no_visible_update state,
          match ribbon with
          | None -> { focus = None; windows = [] }
          | Some ribbon -> (
@@ -434,7 +460,7 @@ let client_command_handle :
                  }
              | None -> { focus = None; windows = [] }) ))
    | Get_workspace_config -> (
-       ( (state, false, None),
+       ( no_visible_update state,
          match
            Workspaces_registry.find_opt state.current_workspace state.workspaces
          with
@@ -449,7 +475,7 @@ let client_command_handle :
                maximum_visible_windows =
                  default_visible_windows state state.current_workspace;
              } ))
-    : _ * a)
+    : state_update * a)
 
 let pp fmt state =
   Format.(
@@ -466,7 +492,7 @@ let load_config state =
   in
   List.fold_left
     (fun state cmd ->
-      let (state, _, _), _ = client_command_handle state (Run_command cmd) in
+      let { state; _ }, _ = client_command_handle state (Run_command cmd) in
       state)
     state
     (Option.value ~default:[] config)

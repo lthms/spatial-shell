@@ -8,7 +8,7 @@ exception Sway_exited
 
 external reraise : exn -> 'a = "%reraise"
 
-let tick_handle (ev : Event.tick_event) state =
+let tick_handle (ev : Event.tick_event) state : State.state_update =
   let state =
     if ev.first then state
     else
@@ -17,9 +17,9 @@ let tick_handle (ev : Event.tick_event) state =
       | "spatial:off" -> State.unset_ignore_events state
       | _ -> state
   in
-  (state, false, None)
+  State.no_visible_update state
 
-let workspace_handle (ev : Event.workspace_event) state =
+let workspace_handle (ev : Event.workspace_event) state : State.state_update =
   match ev.change with
   | Focus ->
       let state =
@@ -27,28 +27,29 @@ let workspace_handle (ev : Event.workspace_event) state =
         | Some workspace -> State.set_current_workspace workspace state
         | None -> state
       in
-      (state, true, None)
-  | Init | Empty | Move | Rename | Urgent | Reload -> (state, false, None)
+      { state; rearrange_workspace = true; force_focus = None }
+  | Init | Empty | Move | Rename | Urgent | Reload ->
+      State.no_visible_update state
 
-let window_handle (ev : Event.window_event) state =
+let window_handle (ev : Event.window_event) state : State.state_update =
   match ev.change with
   | Event.New ->
       let state =
         State.register_window state.State.current_workspace state ev.container
       in
-      (state, true, None)
+      { state; rearrange_workspace = true; force_focus = None }
   | Event.Close ->
       let state = State.unregister_window state ev.container.id in
-      (state, true, None)
+      { state; rearrange_workspace = true; force_focus = None }
   | Event.Title ->
       let state = State.record_window_title_change state ev.container in
-      (state, false, None)
+      State.no_visible_update state
   | Event.Focus when not (State.ignore_events state) ->
       (* TODO: shift the focus to target *)
-      (state, false, None)
+      State.no_visible_update state
   | Event.Focus | Event.Fullscreen_mode | Event.Move | Event.Mark | Event.Urgent
     ->
-      (state, false, None)
+      { state; rearrange_workspace = false; force_focus = None }
   | Event.Floating -> (
       match ev.container.node_type with
       | Con ->
@@ -56,11 +57,15 @@ let window_handle (ev : Event.window_event) state =
             State.register_window state.State.current_workspace state
               ev.container
           in
-          (state, true, None)
+          { state; rearrange_workspace = true; force_focus = None }
       | Floating_con ->
           let state = State.unregister_window state ev.container.id in
-          (state, true, Some ev.container.id)
-      | _ -> (state, false, None))
+          {
+            state;
+            rearrange_workspace = true;
+            force_focus = Some ev.container.id;
+          }
+      | _ -> State.no_visible_update state)
 
 let with_nonblock_socket socket f =
   Unix.clear_nonblock socket;
@@ -79,9 +84,9 @@ let rec go poll state sway_socket server_socket =
     | `Timeout -> go poll state sway_socket server_socket
     | `Ok ->
         let previous_state = state in
-        let state, arrange, force_focus =
-          poll_fold_ready poll (state, false, None)
-            (fun (state, arrange, force_focus) fd _event ->
+        let update =
+          poll_fold_ready poll (State.no_visible_update state)
+            (fun update fd _event ->
               try
                 let res =
                   if fd = sway_socket then
@@ -95,7 +100,7 @@ let rec go poll state sway_socket server_socket =
                     let client = Spatial_ipc.accept fd in
                     Unix.set_nonblock client;
                     Poll.(set poll client Event.read);
-                    (state, arrange, force_focus))
+                    update)
                   else
                     with_nonblock_socket fd @@ fun () ->
                     match
@@ -103,7 +108,7 @@ let rec go poll state sway_socket server_socket =
                         { handler = State.client_command_handle }
                     with
                     | Some res -> res
-                    | None -> (state, arrange, force_focus)
+                    | None -> update
                 in
                 Poll.(set poll fd Event.read);
                 res
@@ -113,13 +118,15 @@ let rec go poll state sway_socket server_socket =
               | Mltp_ipc.Socket.Connection_closed when fd <> server_socket ->
                   Poll.(set poll fd Event.none);
                   Unix.close fd;
-                  (state, arrange, force_focus))
+                  update)
         in
+        let state = update.state in
         let state =
-          if arrange then (
+          if update.rearrange_workspace then (
             (* TODO: Be more configurable about that *)
             ignore (Jobs.shell "/usr/bin/pkill -SIGRTMIN+8 waybar");
-            State.arrange_current_workspace ~previous_state ?force_focus state;
+            State.arrange_current_workspace ~previous_state
+              ?force_focus:update.force_focus state;
             State.handle_background state)
           else state
         in
