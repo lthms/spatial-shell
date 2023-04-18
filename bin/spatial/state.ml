@@ -15,6 +15,7 @@ type state = {
   visible_windows_per_workspace : int Workspaces_map.t;
   background_process : (int * bool) option;
   background_path : string option;
+  ignore_events : bool;
 }
 
 let empty current_workspace =
@@ -28,7 +29,12 @@ let empty current_workspace =
     visible_windows_per_workspace = Workspaces_map.empty;
     background_process = None;
     background_path = None;
+    ignore_events = false;
   }
+
+let set_ignore_events state = { state with ignore_events = true }
+let unset_ignore_events state = { state with ignore_events = false }
+let ignore_events state = state.ignore_events
 
 let default_focus_view { default_focus_view; focus_view_per_workspace; _ }
     workspace =
@@ -193,7 +199,9 @@ let arrange_workspace ?previous_state ?force_focus ~socket workspace state =
   let cmds =
     arrange_workspace_commands ?previous_state ?force_focus workspace state
   in
+  let _reply = Sway_ipc.send_tick ~socket "spatial:on" in
   let _replies = Sway_ipc.send_command ~socket (Run_command cmds) in
+  let _reply = Sway_ipc.send_tick ~socket "spatial:off" in
   ()
 
 let arrange_current_workspace ?previous_state ?force_focus state =

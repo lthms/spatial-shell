@@ -24,12 +24,21 @@ let run_command_reply_decoder =
   and+ error = field_opt "error" string in
   { success; parse_error; error }
 
+type send_tick_reply = { success : bool }
+
+let send_tick_reply_decoder =
+  let open Json_decoder in
+  let open Syntax in
+  let+ success = field "success" bool in
+  { success }
+
 type _ t =
   | Run_command : Command.t list -> run_command_reply list t
   | Get_workspaces : Workspace.t list t
   | Subscribe : Event.event_type list -> subscribe_reply t
   | Get_tree : Node.t t
   | Get_outputs : Output.t list t
+  | Send_tick : string -> send_tick_reply t
 
 let to_raw_message : type reply. reply t -> Mltp_ipc.Raw_message.t = function
   | Run_command cmds ->
@@ -51,6 +60,7 @@ let to_raw_message : type reply. reply t -> Mltp_ipc.Raw_message.t = function
             evs) )
   | Get_outputs -> (3l, "")
   | Get_tree -> (4l, "")
+  | Send_tick payload -> (10l, payload)
 
 let reply_decoder : type reply. reply t -> reply Json_decoder.t = function
   | Run_command _ -> Json_decoder.list run_command_reply_decoder
@@ -58,3 +68,4 @@ let reply_decoder : type reply. reply t -> reply Json_decoder.t = function
   | Subscribe _ -> subscribe_reply_decoder
   | Get_outputs -> Json_decoder.list Output.decoder
   | Get_tree -> Node.decoder
+  | Send_tick _ -> send_tick_reply_decoder

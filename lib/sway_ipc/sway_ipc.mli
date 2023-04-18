@@ -51,3 +51,8 @@ val get_current_workspace : ?socket:socket -> unit -> Sway_ipc_types.Workspace.t
 
     If [socket] is omitted, a fresh connection is established with
     Sway. *)
+
+val send_tick :
+  ?socket:socket -> string -> Sway_ipc_types.Message.send_tick_reply
+(** [send_tick ?socket payload] sends a tick with a given [payload] to Sway. As
+    a result, every subscriber of the Tick event will received said payload. *)

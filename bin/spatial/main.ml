@@ -8,6 +8,17 @@ exception Sway_exited
 
 external reraise : exn -> 'a = "%reraise"
 
+let tick_handle (ev : Event.tick_event) state =
+  let state =
+    if ev.first then state
+    else
+      match ev.payload with
+      | "spatial:on" -> State.set_ignore_events state
+      | "spatial:off" -> State.unset_ignore_events state
+      | _ -> state
+  in
+  (state, false, None)
+
 let workspace_handle (ev : Event.workspace_event) state =
   match ev.change with
   | Focus ->
@@ -31,6 +42,9 @@ let window_handle (ev : Event.window_event) state =
       (state, true, None)
   | Event.Title ->
       let state = State.record_window_title_change state ev.container in
+      (state, false, None)
+  | Event.Focus when not (State.ignore_events state) ->
+      (* TODO: shift the focus to target *)
       (state, false, None)
   | Event.Focus | Event.Fullscreen_mode | Event.Move | Event.Mark | Event.Urgent
     ->
@@ -73,6 +87,7 @@ let rec go poll state sway_socket server_socket =
                   if fd = sway_socket then
                     with_nonblock_socket fd @@ fun () ->
                     match Sway_ipc.read_event fd with
+                    | Tick ev -> tick_handle ev state
                     | Workspace ev -> workspace_handle ev state
                     | Window ev -> window_handle ev state
                     | _ -> assert false
@@ -117,7 +132,7 @@ let () =
   Printexc.record_backtrace true;
   let poll = Poll.create () in
 
-  let sway_socket = Sway_ipc.subscribe [ Window; Workspace ] in
+  let sway_socket = Sway_ipc.subscribe [ Tick; Window; Workspace ] in
   Unix.set_nonblock sway_socket;
   Poll.(set poll sway_socket Event.read);
 

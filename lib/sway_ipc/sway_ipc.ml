@@ -47,3 +47,5 @@ let get_tree ?socket () = send_command ?socket Get_tree
 let get_current_workspace ?socket () =
   let workspaces = send_command ?socket Get_workspaces in
   List.find (fun w -> w.Workspace.focused) workspaces
+
+let send_tick ?socket payload = send_command ?socket (Send_tick payload)

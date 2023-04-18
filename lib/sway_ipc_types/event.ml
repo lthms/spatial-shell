@@ -144,6 +144,7 @@ type t =
   | Workspace of workspace_event
   | Mode of mode_event
   | Window of window_event
+  | Tick of tick_event
 
 type event = t
 
@@ -160,6 +161,9 @@ let decoder (code : event_type) =
   | Window ->
       let+ ev = window_event_decoder in
       Window ev
+  | Tick ->
+      let+ ev = tick_event_decoder in
+      Tick ev
   | _ -> assert false
 
 let event_of_raw_message (opc, payload) =
