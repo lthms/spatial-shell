@@ -27,7 +27,7 @@ let workspace_handle (ev : Event.workspace_event) state : State.state_update =
         | Some workspace -> State.set_current_workspace workspace state
         | None -> state
       in
-      { state; rearrange_workspace = true; force_focus = None }
+      { state; workspace_reorg = Light; force_focus = None }
   | Init | Empty | Move | Rename | Urgent | Reload ->
       State.no_visible_update state
 
@@ -37,10 +37,10 @@ let window_handle (ev : Event.window_event) state : State.state_update =
       let state =
         State.register_window state.State.current_workspace state ev.container
       in
-      { state; rearrange_workspace = true; force_focus = None }
+      { state; workspace_reorg = Full; force_focus = None }
   | Event.Close ->
       let state = State.unregister_window state ev.container.id in
-      { state; rearrange_workspace = true; force_focus = None }
+      { state; workspace_reorg = Full; force_focus = None }
   | Event.Title ->
       let state = State.record_window_title_change state ev.container in
       State.no_visible_update state
@@ -49,7 +49,7 @@ let window_handle (ev : Event.window_event) state : State.state_update =
       State.no_visible_update state
   | Event.Focus | Event.Fullscreen_mode | Event.Move | Event.Mark | Event.Urgent
     ->
-      { state; rearrange_workspace = false; force_focus = None }
+      { state; workspace_reorg = None; force_focus = None }
   | Event.Floating -> (
       match ev.container.node_type with
       | Con ->
@@ -57,14 +57,10 @@ let window_handle (ev : Event.window_event) state : State.state_update =
             State.register_window state.State.current_workspace state
               ev.container
           in
-          { state; rearrange_workspace = true; force_focus = None }
+          { state; workspace_reorg = Full; force_focus = None }
       | Floating_con ->
           let state = State.unregister_window state ev.container.id in
-          {
-            state;
-            rearrange_workspace = true;
-            force_focus = Some ev.container.id;
-          }
+          { state; workspace_reorg = Full; force_focus = Some ev.container.id }
       | _ -> State.no_visible_update state)
 
 let with_nonblock_socket socket f =
@@ -121,10 +117,11 @@ let rec go poll state sway_socket server_socket =
                   update)
         in
         let state = update.state in
+        if State.needs_signal update.workspace_reorg then
+          (* TODO: Be more configurable about that *)
+          ignore (Jobs.shell "/usr/bin/pkill -SIGRTMIN+8 waybar");
         let state =
-          if update.rearrange_workspace then (
-            (* TODO: Be more configurable about that *)
-            ignore (Jobs.shell "/usr/bin/pkill -SIGRTMIN+8 waybar");
+          if State.needs_arranging update.workspace_reorg then (
             State.arrange_current_workspace ~previous_state
               ?force_focus:update.force_focus state;
             State.handle_background state)

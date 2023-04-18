@@ -18,14 +18,22 @@ type state = {
   ignore_events : bool;
 }
 
+type workspace_reorg =
+  | Full  (** Rearrange containers based on Spatial state *)
+  | Light  (** Only signal waybar *)
+  | None  (** Nothing to do *)
+
+let needs_signal = function Full | Light -> true | None -> false
+let needs_arranging = function Full -> true | Light | None -> false
+
 type state_update = {
   state : state;
-  rearrange_workspace : bool;
+  workspace_reorg : workspace_reorg;
   force_focus : int64 option;
 }
 
 let no_visible_update state =
-  { state; rearrange_workspace = false; force_focus = None }
+  { state; workspace_reorg = None; force_focus = None }
 
 let empty current_workspace =
   {
@@ -361,7 +369,7 @@ let client_command_handle : type a. state -> a Spatial_ipc.t -> state_update * a
              no_visible_update state
          | Background path ->
              let state = { state with background_path = Some path } in
-             { state; rearrange_workspace = true; force_focus = None }
+             { state; workspace_reorg = Full; force_focus = None }
          | Focus Prev ->
              let state =
                {
@@ -374,7 +382,7 @@ let client_command_handle : type a. state -> a Spatial_ipc.t -> state_update * a
                      state.workspaces;
                }
              in
-             { state; rearrange_workspace = true; force_focus = None }
+             { state; workspace_reorg = Full; force_focus = None }
          | Focus Next ->
              let state =
                {
@@ -387,10 +395,10 @@ let client_command_handle : type a. state -> a Spatial_ipc.t -> state_update * a
                      state.workspaces;
                }
              in
-             { state; rearrange_workspace = true; force_focus = None }
+             { state; workspace_reorg = Full; force_focus = None }
          | Focus (Index x) ->
              let state = focus_index state.current_workspace state x in
-             { state; rearrange_workspace = true; force_focus = None }
+             { state; workspace_reorg = Full; force_focus = None }
          | Workspace dir ->
              (* Don’t update the state, but ask Sway to change the
                 current workspace instead. This will trigger an event
@@ -399,19 +407,19 @@ let client_command_handle : type a. state -> a Spatial_ipc.t -> state_update * a
              no_visible_update state
          | Move Left ->
              let state = move_window_left state.current_workspace state in
-             { state; rearrange_workspace = true; force_focus = None }
+             { state; workspace_reorg = Full; force_focus = None }
          | Move Right ->
              let state = move_window_right state.current_workspace state in
-             { state; rearrange_workspace = true; force_focus = None }
+             { state; workspace_reorg = Full; force_focus = None }
          | Move Up ->
              let state = move_window_up state in
-             { state; rearrange_workspace = true; force_focus = None }
+             { state; workspace_reorg = Full; force_focus = None }
          | Move Down ->
              let state = move_window_down state in
-             { state; rearrange_workspace = true; force_focus = None }
+             { state; workspace_reorg = Full; force_focus = None }
          | Maximize Toggle ->
              let state = toggle_full_view state.current_workspace state in
-             { state; rearrange_workspace = true; force_focus = None }
+             { state; workspace_reorg = Full; force_focus = None }
          | Maximize _ ->
              (* TODO: implement [On] and [Off] cases *)
              no_visible_update state
@@ -419,12 +427,12 @@ let client_command_handle : type a. state -> a Spatial_ipc.t -> state_update * a
              let state =
                incr_maximum_visible_size state.current_workspace state
              in
-             { state; rearrange_workspace = true; force_focus = None }
+             { state; workspace_reorg = Full; force_focus = None }
          | Split Decr ->
              let state =
                decr_maximum_visible_size state.current_workspace state
              in
-             { state; rearrange_workspace = true; force_focus = None }
+             { state; workspace_reorg = Full; force_focus = None }
        in
        (res, { success = true })
    | Get_workspaces ->
