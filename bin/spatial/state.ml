@@ -264,8 +264,14 @@ let send_command_workspace : Spatial_ipc.target -> state -> unit =
            (Run_command [ Workspace (string_of_int target) ])
   | None -> ()
 
+let kill_background_process ?wait state =
+  match state.background_process with
+  | Some (pid, _) -> Jobs.kill ?wait pid
+  | None -> ()
+
 let spawn_black state =
   let pid = Jobs.spawn "swaybg -c '#000000'" in
+  kill_background_process state;
   { state with background_process = Some (pid, false) }
 
 let spawn_swaybg state =
@@ -274,6 +280,7 @@ let spawn_swaybg state =
       let pid =
         Jobs.spawn (Format.sprintf "swaybg -i %s -m fit -c '#000000'" path)
       in
+      kill_background_process ~wait:0.25 state;
       { state with background_process = Some (pid, true) }
   | none -> spawn_black state
 
@@ -282,31 +289,24 @@ let handle_background state =
     Workspaces_registry.find_opt state.current_workspace state.workspaces
   with
   | Some workspace -> (
-      match
-        (workspace.visible, state.background_process, state.background_path)
-      with
-      | Some _, Some (pid, true), Some _ ->
-          let state = spawn_black state in
-          Jobs.kill pid;
-          state
-      | None, Some (pid, false), Some _ ->
-          let state = spawn_swaybg state in
-          Jobs.kill ~wait:0.25 pid;
-          state
-      | None, None, Some _ -> spawn_swaybg state
-      | None, None, None -> spawn_black state
-      | Some _, None, (Some _ | None) -> spawn_black state
-      | _, Some _, None | None, Some (_, true), _ | Some _, Some (_, false), _
-        ->
-          state)
+      let visible_count =
+        match (workspace.full_view, workspace.visible) with
+        | false, Some (_, l) -> List.length l
+        | true, Some (_, _) -> 1
+        | _, None -> 0
+      in
+      match (state.background_process, state.background_path) with
+      | (Some (_, true) | None), Some _ when 1 < visible_count ->
+          spawn_black state
+      | (Some (_, false) | None), Some _ when visible_count < 2 ->
+          spawn_swaybg state
+      | None, Some _ -> spawn_swaybg state
+      | None, None -> spawn_black state
+      | Some _, _ -> state)
   | None -> (
       match state.background_process with
-      | Some (pid, false) ->
-          let state = spawn_swaybg state in
-          Jobs.kill ~wait:0.15 pid;
-          state
-      | Some (_, true) -> state
-      | None -> spawn_swaybg state)
+      | Some (_, false) | None -> spawn_swaybg state
+      | Some (_, true) -> state)
 
 let client_command_handle :
     type a. state -> a Spatial_ipc.t -> (state * bool * int64 option) * a =
