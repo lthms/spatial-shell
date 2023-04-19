@@ -43,3 +43,6 @@ let to_int slice =
       aux (drop slice 1) ((acc * 10) + char_to_int c)
   in
   aux slice 0
+
+(** [to_string slice] copies the contents of [slice] in a newly allocated [string] *)
+let to_string slice = String.sub slice.buffer slice.base slice.len
