@@ -5,7 +5,7 @@
 open Sway_ipc_types
 module Workspaces_map = Stdlib.Map.Make (String)
 
-type state = {
+type t = {
   current_workspace : string;
   windows : Windows_registry.t;
   workspaces : Workspaces_registry.t;
@@ -26,8 +26,8 @@ type workspace_reorg =
 let needs_signal = function Full | Light -> true | None -> false
 let needs_arranging = function Full -> true | Light | None -> false
 
-type state_update = {
-  state : state;
+type update = {
+  state : t;
   workspace_reorg : workspace_reorg;
   force_focus : int64 option;
 }
@@ -274,7 +274,7 @@ let unregister_window state window =
 (* TODO: Make it configurable *)
 let max_workspace = 6
 
-let send_command_workspace : Spatial_ipc.target -> state -> unit =
+let send_command_workspace : Spatial_ipc.target -> t -> unit =
  fun dir state ->
   (match (dir, int_of_string_opt state.current_workspace) with
   | Next, Some x when x < max_workspace -> Some (x + 1)
@@ -333,8 +333,7 @@ let handle_background state =
       | Some (_, false) | None -> spawn_swaybg state
       | Some (_, true) -> state)
 
-let client_command_handle : type a. state -> a Spatial_ipc.t -> state_update * a
-    =
+let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
  fun state cmd ->
   let open Spatial_ipc in
   (match cmd with
@@ -483,7 +482,7 @@ let client_command_handle : type a. state -> a Spatial_ipc.t -> state_update * a
                maximum_visible_windows =
                  default_visible_windows state state.current_workspace;
              } ))
-    : state_update * a)
+    : update * a)
 
 let pp fmt state =
   Format.(

@@ -8,7 +8,7 @@ exception Sway_exited
 
 external reraise : exn -> 'a = "%reraise"
 
-let tick_handle (ev : Event.tick_event) state : State.state_update =
+let tick_handle (ev : Event.tick_event) state : State.update =
   let state =
     if ev.first then state
     else
@@ -19,7 +19,7 @@ let tick_handle (ev : Event.tick_event) state : State.state_update =
   in
   State.no_visible_update state
 
-let workspace_handle (ev : Event.workspace_event) state : State.state_update =
+let workspace_handle (ev : Event.workspace_event) state : State.update =
   match ev.change with
   | Focus ->
       let state =
@@ -31,7 +31,7 @@ let workspace_handle (ev : Event.workspace_event) state : State.state_update =
   | Init | Empty | Move | Rename | Urgent | Reload ->
       State.no_visible_update state
 
-let window_handle (ev : Event.window_event) state : State.state_update =
+let window_handle (ev : Event.window_event) state : State.update =
   match ev.change with
   | Event.New ->
       let state =
