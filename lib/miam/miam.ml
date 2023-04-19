@@ -19,7 +19,7 @@ let ( let* ) parser k slice =
   let x, slice = parser slice in
   k x slice
 
-let ( <|> ) parser parser' slice = try parser slice with e -> parser' slice
+let ( <|> ) parser parser' slice = try parser slice with _ -> parser' slice
 
 let skip parser =
   let+ _ = parser in
@@ -65,7 +65,7 @@ let rec enum = function
       (let+ () = string str in
        res)
       <|> enum rst
-  | [] -> fun slice -> raise (Invalid_argument "Parser.enum")
+  | [] -> fun _ -> raise (Invalid_argument "Parser.enum")
 
 let run parser str =
   try Some (Slice.of_string str |> parser |> fst) with _ -> None

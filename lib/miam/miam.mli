@@ -30,6 +30,9 @@ val ( <* ) : 'a parser -> 'b parser -> 'a parser
 val string : string -> unit parser
 (** [string s] tries to consume [s] from the input, fails if it cannot. *)
 
+val char : char -> unit parser
+(** [char c] tries to consume [c] from the input, fails if it cannot. *)
+
 val int : int parser
 (** Parses an integer from the input *)
 

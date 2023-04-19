@@ -77,7 +77,7 @@ let () =
               (pp_print_list
                  ~pp_sep:(fun fmt () -> pp_print_string fmt "  ")
                  (fun fmt k ->
-                   Format.printf "%d:%s" k (workspace_icon k reply.windows)))
+                   Format.fprintf fmt "%d:%s" k (workspace_icon k reply.windows)))
               (List.init 6 (fun x -> x + 1))))
   | "get_workspace_config" ->
       let reply = send_command Get_workspace_config in

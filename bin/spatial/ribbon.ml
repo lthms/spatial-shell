@@ -336,13 +336,7 @@ let arrange_commands ?force_focus workspace ribbon =
   let hide_commands = hide_all_windows_commands ribbon in
   let show_commands = show_visible_windows_commands workspace ribbon in
   let focus_commands =
-    (match ribbon.visible with
-    | Some (f, l) ->
-        [
-          Command.With_criteria (Con_id (List.nth l f), Focus);
-          Command.With_criteria (Con_id (List.nth l f), Opacity 1.0);
-        ]
-    | None -> [])
+    focus_command ribbon
     @
     match force_focus with
     | Some w -> [ Command.With_criteria (Con_id w, Opacity 1.0) ]

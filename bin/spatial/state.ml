@@ -307,7 +307,7 @@ let spawn_swaybg state =
       in
       kill_background_process ~wait:0.25 state;
       { state with background_process = Some (pid, true) }
-  | none -> spawn_black state
+  | None -> spawn_black state
 
 let handle_background state =
   match
@@ -496,7 +496,7 @@ let ( // ) = Filename.concat
 let load_config state =
   let config =
     Spatial_ipc.from_file
-      Filename.(Sys.getenv "HOME" // ".config" // "spatial" // "config")
+      (Sys.getenv "HOME" // ".config" // "spatial" // "config")
   in
   List.fold_left
     (fun state cmd ->
