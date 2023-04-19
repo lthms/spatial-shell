@@ -46,7 +46,8 @@ let window_handle (ev : Event.window_event) state : State.update =
       State.no_visible_update state
   | Event.Focus when not (State.ignore_events state) ->
       (* TODO: shift the focus to target *)
-      State.no_visible_update state
+      let state = State.record_focus_change state ev.container.id in
+      { state; workspace_reorg = Full; force_focus = None }
   | Event.Focus | Event.Fullscreen_mode | Event.Move | Event.Mark | Event.Urgent
     ->
       { state; workspace_reorg = None; force_focus = None }

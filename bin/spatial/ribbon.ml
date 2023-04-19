@@ -214,6 +214,24 @@ let focus_index ribbon index =
   in
   aux ribbon index
 
+let focus_window ribbon window =
+  let rec find ofs = function
+    | [] -> None
+    | x :: _ when x = window -> Some ofs
+    | _ :: rst -> find (ofs + 1) rst
+  in
+  let find = find 0 in
+  let rec repeat n s f = if n = 0 then s else repeat (n - 1) (f s) f in
+  match ribbon.visible with
+  | Some (f, l) -> (
+      match find l with
+      | Some target ->
+          if f = target then ribbon
+          else if f < target then repeat (target - f) ribbon move_focus_right
+          else repeat (f - target) ribbon move_focus_left
+      | None -> ribbon)
+  | None -> ribbon
+
 let split_at l i =
   let rec split_visible acc i = function
     | x :: rst when i = 0 -> Some (List.rev acc, x, rst)

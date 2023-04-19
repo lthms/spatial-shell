@@ -257,6 +257,17 @@ let record_window_title_change state (node : Node.t) =
         state.windows;
   }
 
+let record_focus_change state window =
+  {
+    state with
+    workspaces =
+      Workspaces_registry.update state.current_workspace
+        (function
+          | Some ribbon -> Some (Ribbon.focus_window ribbon window)
+          | None -> None)
+        state.workspaces;
+  }
+
 let unregister_window state window =
   match Windows_registry.find_opt window state.windows with
   | Some info ->
