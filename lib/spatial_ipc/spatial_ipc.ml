@@ -21,30 +21,15 @@ let pos_int =
   assert (0 <= ws);
   ws
 
-let index_parser = pos_int
 let workspace_parser = pos_int
 
-type target = Prev | Next | Index of int
+type target = Left | Right | Up | Down
 
 let target_parser =
   let open Miam in
-  string "prev" *> return Prev
-  <|> string "next" *> return Next
-  <|> let+ x = index_parser in
-      Index x
-
-let target_to_string = function
-  | Prev -> "prev"
-  | Next -> "next"
-  | Index x -> string_of_int x
-
-type move_target = Left | Right | Up | Down
-
-let move_target_parser =
-  let open Miam in
   enum [ ("left", Left); ("right", Right); ("up", Up); ("down", Down) ]
 
-let move_target_to_string = function
+let target_to_string = function
   | Left -> "left"
   | Right -> "right"
   | Up -> "up"
@@ -79,9 +64,9 @@ type command =
   | Set_focus_default of int option * bool
   | Set_visible_windows_default of int option * int
   | Background of string
-  | Window of target
-  | Workspace of target
-  | Move of move_target
+  | Window of int
+  | Focus of target
+  | Move of target
   | Maximize of switch
   | Split of operation
 
@@ -100,11 +85,11 @@ let command_parser =
        Set_visible_windows_default (ws, i))
   <|> (let+ path = word "background" *> quoted in
        Background path)
-  <|> (let+ target = word "window" *> target_parser in
+  <|> (let+ target = word "window" *> int in
        Window target)
-  <|> (let+ target = word "workspace" *> target_parser in
-       Workspace target)
-  <|> (let+ target = word "move" *> move_target_parser in
+  <|> (let+ target = word "focus" *> target_parser in
+       Focus target)
+  <|> (let+ target = word "move" *> target_parser in
        Move target)
   <|> (let+ switch = word "maximize" *> switch_parser in
        Maximize switch)
@@ -135,9 +120,9 @@ let command_to_string = function
              (fun fmt x -> fprintf fmt "[workspace=%d] " x))
           workspace x)
   | Background path -> Format.sprintf "background \"%s\"" path
-  | Window dir -> Format.sprintf "window %s" (target_to_string dir)
-  | Workspace dir -> Format.sprintf "workspace %s" (target_to_string dir)
-  | Move dir -> Format.sprintf "move %s" (move_target_to_string dir)
+  | Window dir -> Format.sprintf "window %s" (string_of_int dir)
+  | Focus dir -> Format.sprintf "focus %s" (target_to_string dir)
+  | Move dir -> Format.sprintf "move %s" (target_to_string dir)
   | Maximize switch -> Format.sprintf "maximize %s" (switch_to_string switch)
   | Split op -> Format.sprintf "split %s" (operation_to_string op)
 

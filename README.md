@@ -22,10 +22,17 @@ exec $spatialmsg
 # focus is on the last window on the left of the visible area, windows
 # will shift right to make room for the next candidate on the loop,
 # and the window on the far right will disappear.
-bindsym $mod+t exec $spatialmsg "focus prev"
+bindsym $mod+t exec $spatialmsg "focus left"
 
 # Same thing, for the right.
-bindsym $mod+n exec $spatialmsg "focus next"
+bindsym $mod+n exec $spatialmsg "focus right"
+
+# Jump to the previous workspace (that is, N-1 for workspace N, but
+# iff N > 0).
+bindsym $mod+r exec $spatialmsg "focus up"
+
+# Jump to the next workspace (that is, N+1 for workspace N).
+bindsym $mod+s exec $spatialmsg "focus down"
 
 # Move the focused window on the left.
 bindsym $mod+Shift+t exec $spatialmsg "move left"
@@ -39,12 +46,6 @@ bindsym $mod+Shift+r exec $spatialmsg "move up"
 # Move the focused window on the lower workspace.
 bindsym $mod+Shift+s exec $spatialmsg "move down"
 
-# Jump to the previous workspace (that is, N-1 for workspace N, but
-# iff N > 0).
-bindsym $mod+r exec $spatialmsg "workspace prev"
-
-# Jump to the next workspace (that is, N+1 for workspace N).
-bindsym $mod+s exec $spatialmsg "workspace next"
 
 # Toggle between a mode where only one window is visible (maximized
 # mode), or a fixed numbers (split mode). spatial will remember

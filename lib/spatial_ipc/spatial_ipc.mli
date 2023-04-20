@@ -4,8 +4,7 @@
 
 val socket_path : unit -> string
 
-type target = Prev | Next | Index of int
-type move_target = Left | Right | Up | Down
+type target = Left | Right | Up | Down
 type switch = On | Off | Toggle
 type operation = Incr | Decr
 
@@ -13,9 +12,9 @@ type command =
   | Set_focus_default of int option * bool
   | Set_visible_windows_default of int option * int
   | Background of string
-  | Window of target
-  | Workspace of target
-  | Move of move_target
+  | Window of int
+  | Focus of target
+  | Move of target
   | Maximize of switch
   | Split of operation
 

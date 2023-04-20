@@ -285,14 +285,12 @@ let unregister_window state window =
 (* TODO: Make it configurable *)
 let max_workspace = 6
 
-let send_command_workspace : Spatial_ipc.target -> t -> unit =
- fun dir state ->
+let send_command_workspace dir state =
   (match (dir, int_of_string_opt state.current_workspace) with
-  | Next, Some x when x < max_workspace -> Some (x + 1)
-  | Prev, Some x when 1 < x -> Some (x - 1)
-  | (Next | Prev), Some _ -> None
-  | (Next | Prev), None -> Some 0
-  | Index t, _ -> Some t)
+  | `Next, Some x when x < max_workspace -> Some (x + 1)
+  | `Prev, Some x when 1 < x -> Some (x - 1)
+  | (`Next | `Prev), Some _ -> None
+  | (`Next | `Prev), None -> Some 0)
   |> function
   | Some target ->
       ignore
@@ -380,7 +378,7 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
          | Background path ->
              let state = { state with background_path = Some path } in
              { state; workspace_reorg = Full; force_focus = None }
-         | Window Prev ->
+         | Focus Left ->
              let state =
                {
                  state with
@@ -393,7 +391,7 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
                }
              in
              { state; workspace_reorg = Full; force_focus = None }
-         | Window Next ->
+         | Focus Right ->
              let state =
                {
                  state with
@@ -406,14 +404,20 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
                }
              in
              { state; workspace_reorg = Full; force_focus = None }
-         | Window (Index x) ->
+         | Window x ->
              let state = focus_index state.current_workspace state x in
              { state; workspace_reorg = Full; force_focus = None }
-         | Workspace dir ->
+         | Focus Up ->
              (* Don’t update the state, but ask Sway to change the
                 current workspace instead. This will trigger an event
                 that we will eventually received. *)
-             send_command_workspace dir state;
+             send_command_workspace `Prev state;
+             no_visible_update state
+         | Focus Down ->
+             (* Don’t update the state, but ask Sway to change the
+                current workspace instead. This will trigger an event
+                that we will eventually received. *)
+             send_command_workspace `Next state;
              no_visible_update state
          | Move Left ->
              let state = move_window_left state.current_workspace state in
