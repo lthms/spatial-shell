@@ -2,3 +2,12 @@
  (name spatial_ipc)
  (public_name spatial-shell.ipc)
  (libraries mltp-ipc data-encoding miam))
+
+(rule
+ (alias man-pages)
+ (action
+  (with-stdout-to
+   spatial-ipc.7
+   (with-stdin-from
+    spatial-ipc.7.scd
+    (run scdoc)))))

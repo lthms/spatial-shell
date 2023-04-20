@@ -1,3 +1,21 @@
 (executable
  (name main)
  (libraries poll spatial-shell.ipc sway-ipc unix threads))
+
+(rule
+ (alias man-pages)
+ (action
+  (with-stdout-to
+   spatial.1
+   (with-stdin-from
+    spatial.1.scd
+    (run scdoc)))))
+
+(rule
+ (alias man-pages)
+ (action
+  (with-stdout-to
+   spatial.5
+   (with-stdin-from
+    spatial.5.scd
+    (run scdoc)))))
