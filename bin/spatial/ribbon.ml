@@ -4,23 +4,20 @@
 
 open Sway_ipc_types
 
+let toggle_layout =
+  Spatial_ipc.(function Maximize -> Column | Column -> Maximize)
+
 type t = {
-  full_view : bool;
-  maximum_visible_size : int;
+  layout : Spatial_ipc.layout;
+  column_count : int;
   hidden_left : int64 list;
   visible : (int * int64 list) option;
   hidden_right : int64 list;
 }
 
-let empty full_view maximum_visible_size =
-  assert (0 < maximum_visible_size);
-  {
-    full_view;
-    maximum_visible_size;
-    hidden_left = [];
-    visible = None;
-    hidden_right = [];
-  }
+let empty layout column_count =
+  assert (0 < column_count);
+  { layout; column_count; hidden_left = []; visible = None; hidden_right = [] }
 
 let visible_windows_count = function
   | { visible = None; _ } -> 0
@@ -58,11 +55,9 @@ let pop_back_exn l =
 
 let shrink_left ribbon =
   match ribbon.visible with
-  | Some (0, _) when ribbon.maximum_visible_size < visible_windows_count ribbon
-    ->
+  | Some (0, _) when ribbon.column_count < visible_windows_count ribbon ->
       raise (Invalid_argument "shrink_left")
-  | Some (f, l) when ribbon.maximum_visible_size < visible_windows_count ribbon
-    ->
+  | Some (f, l) when ribbon.column_count < visible_windows_count ribbon ->
       let w, l = pop_front_exn l in
       {
         ribbon with
@@ -74,11 +69,10 @@ let shrink_left ribbon =
 let shrink_right ribbon =
   match ribbon.visible with
   | Some (f, l)
-    when ribbon.maximum_visible_size < visible_windows_count ribbon
+    when ribbon.column_count < visible_windows_count ribbon
          && f + 1 = List.length l ->
       raise (Invalid_argument "shrink_right")
-  | Some (f, l) when ribbon.maximum_visible_size < visible_windows_count ribbon
-    ->
+  | Some (f, l) when ribbon.column_count < visible_windows_count ribbon ->
       let w, l = pop_back_exn l in
       {
         ribbon with
@@ -99,7 +93,7 @@ let insert_window window ribbon =
   | Some (f, l) ->
       let f = f + 1 in
       let ribbon = { ribbon with visible = Some (f, insert_at f window l) } in
-      if f < ribbon.maximum_visible_size then shrink_right ribbon
+      if f < ribbon.column_count then shrink_right ribbon
       else shrink_left ribbon
 
 let remove window =
@@ -119,7 +113,7 @@ let remove_if_present window =
   remove []
 
 let fill_space ribbon =
-  if visible_windows_count ribbon < ribbon.maximum_visible_size then
+  if visible_windows_count ribbon < ribbon.column_count then
     match
       ( pop_front ribbon.hidden_right,
         pop_front ribbon.hidden_left,
@@ -137,13 +131,11 @@ let fill_space ribbon =
   else ribbon
 
 let incr_maximum_visible ribbon =
-  fill_space
-    { ribbon with maximum_visible_size = ribbon.maximum_visible_size + 1 }
+  fill_space { ribbon with column_count = ribbon.column_count + 1 }
 
 let decr_maximum_visible ribbon =
-  if 2 < ribbon.maximum_visible_size then
-    shrink
-      { ribbon with maximum_visible_size = ribbon.maximum_visible_size - 1 }
+  if 2 < ribbon.column_count then
+    shrink { ribbon with column_count = ribbon.column_count - 1 }
   else ribbon
 
 let remove_window window ribbon =
@@ -169,7 +161,7 @@ let remove_window window ribbon =
         hidden_right = remove_if_present window ribbon.hidden_right;
       }
 
-let toggle_full_view ribbon = { ribbon with full_view = not ribbon.full_view }
+let toggle_layout ribbon = { ribbon with layout = toggle_layout ribbon.layout }
 
 let move_focus_left ribbon =
   match ribbon.visible with
@@ -318,13 +310,13 @@ let show_window_command workspace window =
 
 let visible_windows ribbon =
   match ribbon.visible with
-  | Some (f, l) when ribbon.full_view -> [ List.nth l f ]
+  | Some (f, l) when ribbon.layout = Maximize -> [ List.nth l f ]
   | Some (_, l) -> l
   | None -> []
 
 let all_windows ribbon =
   List.rev ribbon.hidden_left
-  @ visible_windows { ribbon with full_view = false }
+  @ visible_windows { ribbon with layout = Column }
   @ ribbon.hidden_right
 
 let focused_window ribbon =
@@ -335,7 +327,7 @@ let hide_all_windows_commands ribbon =
 
 let show_visible_windows_commands workspace ribbon =
   match ribbon.visible with
-  | Some (f, l) when ribbon.full_view ->
+  | Some (f, l) when ribbon.layout = Maximize ->
       show_window_command workspace (List.nth l f)
   | Some (_, l) -> List.concat_map (show_window_command workspace) l
   | None -> []

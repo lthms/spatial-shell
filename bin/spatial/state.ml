@@ -9,10 +9,10 @@ type t = {
   current_workspace : string;
   windows : Windows_registry.t;
   workspaces : Workspaces_registry.t;
-  default_focus_view : bool;
-  focus_view_per_workspace : bool Workspaces_map.t;
-  default_visible_windows : int;
-  visible_windows_per_workspace : int Workspaces_map.t;
+  default_layout : Spatial_ipc.layout;
+  default_layout_per_workspace : Spatial_ipc.layout Workspaces_map.t;
+  default_column_count : int;
+  default_column_count_per_workspace : int Workspaces_map.t;
   background_process : (int * bool) option;
   background_path : string option;
   ignore_events : bool;
@@ -40,10 +40,10 @@ let empty current_workspace =
     current_workspace;
     windows = Windows_registry.empty;
     workspaces = Workspaces_registry.empty;
-    default_focus_view = false;
-    focus_view_per_workspace = Workspaces_map.empty;
-    default_visible_windows = 2;
-    visible_windows_per_workspace = Workspaces_map.empty;
+    default_layout = Column;
+    default_layout_per_workspace = Workspaces_map.empty;
+    default_column_count = 2;
+    default_column_count_per_workspace = Workspaces_map.empty;
     background_process = None;
     background_path = None;
     ignore_events = false;
@@ -53,22 +53,24 @@ let set_ignore_events state = { state with ignore_events = true }
 let unset_ignore_events state = { state with ignore_events = false }
 let ignore_events state = state.ignore_events
 
-let default_focus_view { default_focus_view; focus_view_per_workspace; _ }
-    workspace =
-  match Workspaces_map.find_opt workspace focus_view_per_workspace with
+let default_layout { default_layout; default_layout_per_workspace; _ } workspace
+    =
+  match Workspaces_map.find_opt workspace default_layout_per_workspace with
   | Some x -> x
-  | None -> default_focus_view
+  | None -> default_layout
 
-let default_visible_windows
-    { default_visible_windows; visible_windows_per_workspace; _ } workspace =
-  match Workspaces_map.find_opt workspace visible_windows_per_workspace with
+let default_column_count
+    { default_column_count; default_column_count_per_workspace; _ } workspace =
+  match
+    Workspaces_map.find_opt workspace default_column_count_per_workspace
+  with
   | Some x -> x
-  | None -> default_visible_windows
+  | None -> default_column_count
 
 let internal_register_window state target_workspace window =
   Workspaces_registry.register_window
-    (default_focus_view state target_workspace)
-    (default_visible_windows state target_workspace)
+    (default_layout state target_workspace)
+    (default_column_count state target_workspace)
     target_workspace window
 
 let set_current_workspace current_workspace state =
@@ -84,20 +86,20 @@ let focus_index workspace state index =
         state.workspaces;
   }
 
-let toggle_full_view workspace state =
+let toggle_layout workspace state =
   {
     state with
     workspaces =
       Workspaces_registry.update workspace
         (function
-          | Some ribbon -> Some (Ribbon.toggle_full_view ribbon)
+          | Some ribbon -> Some (Ribbon.toggle_layout ribbon)
           | None ->
               Some
                 Ribbon.(
-                  toggle_full_view
+                  toggle_layout
                   @@ empty
-                       (default_focus_view state state.current_workspace)
-                       (default_visible_windows state state.current_workspace)))
+                       (default_layout state state.current_workspace)
+                       (default_column_count state state.current_workspace)))
         state.workspaces;
   }
 
@@ -174,8 +176,8 @@ let incr_maximum_visible_size workspace state =
                 Ribbon.(
                   incr_maximum_visible
                   @@ empty
-                       (default_focus_view state state.current_workspace)
-                       (default_visible_windows state state.current_workspace)))
+                       (default_layout state state.current_workspace)
+                       (default_column_count state state.current_workspace)))
         state.workspaces;
   }
 
@@ -191,8 +193,8 @@ let decr_maximum_visible_size workspace state =
                 Ribbon.(
                   decr_maximum_visible
                   @@ empty
-                       (default_focus_view state state.current_workspace)
-                       (default_visible_windows state state.current_workspace)))
+                       (default_layout state state.current_workspace)
+                       (default_column_count state state.current_workspace)))
         state.workspaces;
   }
 
@@ -324,9 +326,9 @@ let handle_background state =
   with
   | Some workspace -> (
       let visible_count =
-        match (workspace.full_view, workspace.visible) with
-        | false, Some (_, l) -> List.length l
-        | true, Some (_, _) -> 1
+        match (workspace.layout, workspace.visible) with
+        | Column, Some (_, l) -> List.length l
+        | Maximize, Some (_, _) -> 1
         | _, None -> 0
       in
       match (state.background_process, state.background_path) with
@@ -349,29 +351,29 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
    | Run_command cmd ->
        let res =
          match cmd with
-         | Set_focus_default (None, default_focus_view) ->
-             let state = { state with default_focus_view } in
+         | Default_layout (None, default_layout) ->
+             let state = { state with default_layout } in
              no_visible_update state
-         | Set_focus_default (Some ws, focus_view) ->
+         | Default_layout (Some ws, default_layout) ->
              let state =
                {
                  state with
-                 focus_view_per_workspace =
-                   Workspaces_map.add (string_of_int ws) focus_view
-                     state.focus_view_per_workspace;
+                 default_layout_per_workspace =
+                   Workspaces_map.add (string_of_int ws) default_layout
+                     state.default_layout_per_workspace;
                }
              in
              no_visible_update state
-         | Set_visible_windows_default (None, default_visible_windows) ->
-             let state = { state with default_visible_windows } in
+         | Default_column_count (None, default_column_count) ->
+             let state = { state with default_column_count } in
              no_visible_update state
-         | Set_visible_windows_default (Some ws, visible_windows) ->
+         | Default_column_count (Some ws, default_column_count) ->
              let state =
                {
                  state with
-                 visible_windows_per_workspace =
-                   Workspaces_map.add (string_of_int ws) visible_windows
-                     state.visible_windows_per_workspace;
+                 default_column_count_per_workspace =
+                   Workspaces_map.add (string_of_int ws) default_column_count
+                     state.default_column_count_per_workspace;
                }
              in
              no_visible_update state
@@ -431,18 +433,18 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
          | Move Down ->
              let state = move_window_down state in
              { state; workspace_reorg = Full; force_focus = None }
-         | Maximize Toggle ->
-             let state = toggle_full_view state.current_workspace state in
+         | Toggle_layout ->
+             let state = toggle_layout state.current_workspace state in
              { state; workspace_reorg = Full; force_focus = None }
-         | Maximize _ ->
+         | Layout _ ->
              (* TODO: implement [On] and [Off] cases *)
              no_visible_update state
-         | Split Incr ->
+         | Column_count Incr ->
              let state =
                incr_maximum_visible_size state.current_workspace state
              in
              { state; workspace_reorg = Full; force_focus = None }
-         | Split Decr ->
+         | Column_count Decr ->
              let state =
                decr_maximum_visible_size state.current_workspace state
              in
@@ -488,14 +490,13 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
          with
          | Some workspace ->
              {
-               maximized = workspace.full_view;
-               maximum_visible_windows = workspace.maximum_visible_size;
+               layout = workspace.layout;
+               column_count = workspace.column_count;
              }
          | None ->
              {
-               maximized = default_focus_view state state.current_workspace;
-               maximum_visible_windows =
-                 default_visible_windows state state.current_workspace;
+               layout = default_layout state state.current_workspace;
+               column_count = default_column_count state state.current_workspace;
              } ))
     : update * a)
 

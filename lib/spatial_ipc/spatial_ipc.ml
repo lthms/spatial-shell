@@ -35,13 +35,13 @@ let target_to_string = function
   | Up -> "up"
   | Down -> "down"
 
-type switch = On | Off | Toggle
+type layout = Maximize | Column
 
-let switch_parser =
+let layout_parser =
   let open Miam in
-  enum [ ("on", On); ("off", Off); ("toggle", Toggle) ]
+  enum [ ("maximize", Maximize); ("column", Column) ]
 
-let switch_to_string = function On -> "on" | Off -> "off" | Toggle -> "toggle"
+let layout_to_string = function Maximize -> "maximize" | Column -> "column"
 
 type operation = Incr | Decr
 
@@ -61,28 +61,25 @@ let workspace_scope_parser =
   <|> return None
 
 type command =
-  | Set_focus_default of int option * bool
-  | Set_visible_windows_default of int option * int
+  | Default_layout of int option * layout
+  | Default_column_count of int option * int
   | Background of string
   | Window of int
   | Focus of target
   | Move of target
-  | Maximize of switch
-  | Split of operation
-
-let bool_parser =
-  let open Miam in
-  enum [ ("true", true); ("false", false) ]
+  | Layout of layout
+  | Toggle_layout
+  | Column_count of operation
 
 let command_parser =
   let open Miam in
   (let+ ws = workspace_scope_parser
-   and+ b = word "default" *> word "focus" *> bool_parser in
-   Set_focus_default (ws, b))
+   and+ b = word "default" *> word "layout" *> layout_parser in
+   Default_layout (ws, b))
   <|> (let+ ws = workspace_scope_parser
-       and+ i = word "default" *> word "visible" *> word "windows" *> int in
+       and+ i = word "default" *> word "column" *> word "count" *> int in
        assert (1 < i);
-       Set_visible_windows_default (ws, i))
+       Default_column_count (ws, i))
   <|> (let+ path = word "background" *> quoted in
        Background path)
   <|> (let+ target = word "window" *> int in
@@ -91,10 +88,11 @@ let command_parser =
        Focus target)
   <|> (let+ target = word "move" *> target_parser in
        Move target)
-  <|> (let+ switch = word "maximize" *> switch_parser in
-       Maximize switch)
-  <|> (let+ op = word "split" *> operation_parser in
-       Split op)
+  <|> (let+ layout = word "layout" *> layout_parser in
+       Layout layout)
+  <|> word "toggle" *> word "layout" *> return Toggle_layout
+  <|> (let+ op = word "column" *> word "count" *> operation_parser in
+       Column_count op)
   <* whitespaces
 
 let command_of_string = Miam.(run (command_parser <* empty))
@@ -105,16 +103,16 @@ let command_of_string_exn str =
   | None -> raise (Invalid_argument "Spatial_ipc.command_of_string_exn")
 
 let command_to_string = function
-  | Set_focus_default (workspace, x) ->
+  | Default_layout (workspace, x) ->
       Format.(
-        asprintf "%adefault focus %a"
+        asprintf "%adefault layout %a"
           (pp_print_option
              ~none:(fun fmt () -> fprintf fmt "[workspace=*]")
              (fun fmt x -> fprintf fmt "[workspace=%d] " x))
-          workspace pp_print_bool x)
-  | Set_visible_windows_default (workspace, x) ->
+          workspace pp_print_string (layout_to_string x))
+  | Default_column_count (workspace, x) ->
       Format.(
-        asprintf "%adefault columns %d"
+        asprintf "%adefault column count %d"
           (pp_print_option
              ~none:(fun fmt () -> fprintf fmt "[workspace=*]")
              (fun fmt x -> fprintf fmt "[workspace=%d] " x))
@@ -123,8 +121,9 @@ let command_to_string = function
   | Window dir -> Format.sprintf "window %s" (string_of_int dir)
   | Focus dir -> Format.sprintf "focus %s" (target_to_string dir)
   | Move dir -> Format.sprintf "move %s" (target_to_string dir)
-  | Maximize switch -> Format.sprintf "maximize %s" (switch_to_string switch)
-  | Split op -> Format.sprintf "split %s" (operation_to_string op)
+  | Layout layout -> Format.sprintf "layout %s" (layout_to_string layout)
+  | Toggle_layout -> "toggle layout"
+  | Column_count op -> Format.sprintf "column count %s" (operation_to_string op)
 
 type run_command_reply = { success : bool }
 
@@ -165,20 +164,18 @@ let get_workspaces_reply_encoding : get_workspaces_reply Data_encoding.t =
     (obj2 (req "current" int31)
        (req "windows" @@ list (tup2 int31 window_info_encoding)))
 
-type get_workspace_config_reply = {
-  maximized : bool;
-  maximum_visible_windows : int;
-}
+type get_workspace_config_reply = { layout : layout; column_count : int }
+
+let layout_encoding =
+  Data_encoding.string_enum [ ("maximize", Maximize); ("column", Column) ]
 
 let get_workspace_config_reply_encoding :
     get_workspace_config_reply Data_encoding.t =
   let open Data_encoding in
   conv
-    (fun { maximized; maximum_visible_windows } ->
-      (maximized, maximum_visible_windows))
-    (fun (maximized, maximum_visible_windows) ->
-      { maximized; maximum_visible_windows })
-    (obj2 (req "maximized" bool) (req "maximum_visible_windows" int31))
+    (fun { layout; column_count } -> (layout, column_count))
+    (fun (layout, column_count) -> { layout; column_count })
+    (obj2 (req "layout" layout_encoding) (req "column_count" int31))
 
 type 'a t =
   | Run_command : command -> run_command_reply t

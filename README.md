@@ -48,15 +48,15 @@ bindsym $mod+Shift+s exec $spatialmsg "move down"
 
 
 # Toggle between a mode where only one window is visible (maximized
-# mode), or a fixed numbers (split mode). spatial will remember
+# mode), or a fixed numbers (column mode). spatial will remember
 # how may windows you want visible when not in full view mode.
-bindsym $mod+space exec $spatialmsg "maximize toggle"
+bindsym $mod+space exec $spatialmsg "toggle layout"
 
 # Decrease the number of windows to display when in split mode.
-bindsym $mod+g exec $spatialmsg "split decrement"
+bindsym $mod+g exec $spatialmsg "column count decrement"
 
 # Increase the number of windows to display when in split mode.
-bindsym $mod+h exec $spatialmsg "split increment"
+bindsym $mod+h exec $spatialmsg "column count increment"
 ```
 
 It is also possible to customize Spatial Shell itself, by creating a
@@ -66,13 +66,12 @@ The syntax is heavily inspired by Sway’s.
 
 - `background "PATH"` will tell Spatial Shell to display the chosen background
   in empty workspaces (using `swaybg`).
-- `default focus true|false` to decide whether or not Spatial Shell will prefer
-  the maximized view for first visited workspace or not. If prefixed by
+- `default layout maximize|column` to decide whether or not Spatial Shell will
+  prefer the maximized view for first visited workspace or not. If prefixed by
   `[workspace=n]`, then the rule only affects workspace `n`.
-- `default visible windows n` will tell Spatial Shell to limit the number of
-  visible windows in first visited workspaces to `n` (when the maximized mode
-  is disable). If prefixed by `[workspace=n]`, then the rule only affects
-  workspace `n`.
+- `default column count n` will tell Spatial Shell to limit the number of
+  columns in first visited workspaces to `n` (when using the column layout)
+  If prefixed by `[workspace=n]`, then the rule only affects workspace `n`.
 
 ## Installing From Source
 

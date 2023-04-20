@@ -5,18 +5,19 @@
 val socket_path : unit -> string
 
 type target = Left | Right | Up | Down
-type switch = On | Off | Toggle
+type layout = Maximize | Column
 type operation = Incr | Decr
 
 type command =
-  | Set_focus_default of int option * bool
-  | Set_visible_windows_default of int option * int
+  | Default_layout of int option * layout
+  | Default_column_count of int option * int
   | Background of string
   | Window of int
   | Focus of target
   | Move of target
-  | Maximize of switch
-  | Split of operation
+  | Layout of layout
+  | Toggle_layout
+  | Column_count of operation
 
 val command_of_string : string -> command option
 
@@ -32,10 +33,7 @@ type get_workspaces_reply = {
   windows : (int * window_info) list;
 }
 
-type get_workspace_config_reply = {
-  maximized : bool;
-  maximum_visible_windows : int;
-}
+type get_workspace_config_reply = { layout : layout; column_count : int }
 
 type 'a t =
   | Run_command : command -> run_command_reply t

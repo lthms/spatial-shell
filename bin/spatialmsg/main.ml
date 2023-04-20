@@ -83,6 +83,6 @@ let () =
       let reply = send_command Get_workspace_config in
       Format.(
         printf "%s  %d"
-          (if reply.maximized then "" else "")
-          reply.maximum_visible_windows)
+          (if reply.layout = Maximize then "" else "")
+          reply.column_count)
   | _ -> exit 2
