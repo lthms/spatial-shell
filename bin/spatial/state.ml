@@ -504,10 +504,12 @@ let pp fmt state =
 let ( // ) = Filename.concat
 
 let load_config state =
-  let config =
-    Spatial_ipc.from_file
-      (Sys.getenv "HOME" // ".config" // "spatial" // "config")
+  let config_dir =
+    match Sys.getenv_opt "XDG_CONFIG_HOME" with
+    | Some config_base -> config_base
+    | None -> Sys.getenv "HOME" // ".config"
   in
+  let config = Spatial_ipc.from_file (config_dir // "spatial" // "config") in
   List.fold_left
     (fun state cmd ->
       let { state; _ }, _ = client_command_handle state (Run_command cmd) in
