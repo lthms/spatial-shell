@@ -13,7 +13,7 @@ type command =
   | Set_focus_default of int option * bool
   | Set_visible_windows_default of int option * int
   | Background of string
-  | Focus of target
+  | Window of target
   | Workspace of target
   | Move of move_target
   | Maximize of switch

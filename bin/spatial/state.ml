@@ -380,7 +380,7 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
          | Background path ->
              let state = { state with background_path = Some path } in
              { state; workspace_reorg = Full; force_focus = None }
-         | Focus Prev ->
+         | Window Prev ->
              let state =
                {
                  state with
@@ -393,7 +393,7 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
                }
              in
              { state; workspace_reorg = Full; force_focus = None }
-         | Focus Next ->
+         | Window Next ->
              let state =
                {
                  state with
@@ -406,7 +406,7 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
                }
              in
              { state; workspace_reorg = Full; force_focus = None }
-         | Focus (Index x) ->
+         | Window (Index x) ->
              let state = focus_index state.current_workspace state x in
              { state; workspace_reorg = Full; force_focus = None }
          | Workspace dir ->

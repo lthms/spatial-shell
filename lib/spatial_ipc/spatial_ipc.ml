@@ -79,7 +79,7 @@ type command =
   | Set_focus_default of int option * bool
   | Set_visible_windows_default of int option * int
   | Background of string
-  | Focus of target
+  | Window of target
   | Workspace of target
   | Move of move_target
   | Maximize of switch
@@ -100,8 +100,8 @@ let command_parser =
        Set_visible_windows_default (ws, i))
   <|> (let+ path = word "background" *> quoted in
        Background path)
-  <|> (let+ target = word "focus" *> target_parser in
-       Focus target)
+  <|> (let+ target = word "window" *> target_parser in
+       Window target)
   <|> (let+ target = word "workspace" *> target_parser in
        Workspace target)
   <|> (let+ target = word "move" *> move_target_parser in
@@ -135,7 +135,7 @@ let command_to_string = function
              (fun fmt x -> fprintf fmt "[workspace=%d] " x))
           workspace x)
   | Background path -> Format.sprintf "background \"%s\"" path
-  | Focus dir -> Format.sprintf "focus %s" (target_to_string dir)
+  | Window dir -> Format.sprintf "window %s" (target_to_string dir)
   | Workspace dir -> Format.sprintf "workspace %s" (target_to_string dir)
   | Move dir -> Format.sprintf "move %s" (move_target_to_string dir)
   | Maximize switch -> Format.sprintf "maximize %s" (switch_to_string switch)
