@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. *)
 
-val socket_path : string
+val socket_path : unit -> string
 
 type target = Prev | Next | Index of int
 type move_target = Left | Right | Up | Down

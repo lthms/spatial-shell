@@ -4,7 +4,15 @@
 
 open Mltp_ipc
 
-let socket_path = "/tmp/spatial-sway.socket"
+let socket_path () =
+  let ( // ) = Filename.concat in
+  let base =
+    match Sys.getenv_opt "XDG_RUNTIME_DIR" with
+    | Some base -> base
+    | None -> "/tmp"
+  in
+  base // "spatial.sock"
+
 let magic_string = "spatial-ipc"
 
 let pos_int =
@@ -239,13 +247,13 @@ let of_raw_message (op, payload) =
 
 type socket = Socket.socket
 
-let connect () : socket = Socket.connect socket_path
+let connect () : socket = Socket.connect (socket_path ())
 let close socket = Socket.close socket
 
 let with_socket ?socket f =
   match socket with
   | Some socket -> f socket
-  | None -> Socket.with_socket socket_path f
+  | None -> Socket.with_socket (socket_path ()) f
 
 let send_command ?socket cmd =
   with_socket ?socket @@ fun socket ->
@@ -270,7 +278,7 @@ let handle_next_command ~socket input { handler } =
       Socket.write_raw_message ~magic_string socket (op, "");
       None
 
-let create_server () = Socket.create_server socket_path
+let create_server () = Socket.create_server (socket_path ())
 let accept = Socket.accept
 
 let from_file path =
