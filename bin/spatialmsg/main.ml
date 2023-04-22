@@ -45,28 +45,35 @@ let format_clap () =
       [ ([ "json" ], [], Json); ([ "quiet" ], [], Quiet) ]
       Json)
 
+let clap_close =
+  Clap.close
+    ~on_help:(fun () -> ())
+    ~on_error:(fun msg ->
+      Format.(fprintf err_formatter "Error: %s@ " msg);
+      exit 1)
+
 let exec format = function
   | "run_command" ->
       let cmd = Clap.mandatory_string ~placeholder:"CMD" () in
-      Clap.close ();
+      clap_close ();
       let cmd = command_of_string_exn cmd in
       let reply = send_command (Run_command cmd) in
       output_run_command reply format;
       if not reply.success then exit 1
   | "get_windows" ->
-      Clap.close ();
+      clap_close ();
       let reply = send_command Get_windows in
       output_get_windows reply format
   | "get_workspaces" ->
-      Clap.close ();
+      clap_close ();
       let reply = send_command Get_workspaces in
       output_get_workspaces reply format
   | "get_workspace_config" ->
       let reply = send_command Get_workspace_config in
-      Clap.close ();
+      clap_close ();
       output_get_workspace_config reply format
   | _ ->
-      Clap.close ();
+      clap_close ();
       exit 2
 
 let () =
