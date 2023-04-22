@@ -142,7 +142,7 @@ let window_info_encoding : window_info Data_encoding.t =
   conv
     (fun { workspace; app_id; name } -> (workspace, app_id, name))
     (fun (workspace, app_id, name) -> { workspace; app_id; name })
-    (obj3 (req "focus" string) (req "app_id" string) (req "name" string))
+    (obj3 (req "workspace" string) (req "app_id" string) (req "name" string))
 
 let get_windows_reply_encoding : get_windows_reply Data_encoding.t =
   let open Data_encoding in
