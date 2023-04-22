@@ -25,14 +25,9 @@ val command_of_string_exn : string -> command
 (** @raise [Invalid_argument] *)
 
 type run_command_reply = { success : bool }
-type window_info = { workspace : string; app_id : string; name : string }
-type get_windows_reply = { focus : int option; windows : window_info list }
-
-type get_workspaces_reply = {
-  current : int;
-  windows : (int * window_info) list;
-}
-
+type window = { app_id : string; name : string }
+type get_windows_reply = { focus : int option; windows : window list }
+type get_workspaces_reply = { focus : int; windows : (int * window) list }
 type get_workspace_config_reply = { layout : layout; column_count : int }
 
 val run_command_reply_encoding : run_command_reply Data_encoding.t

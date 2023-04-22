@@ -4,83 +4,35 @@
 
 open Spatial_ipc
 
-let default_icon = ""
-let empty_workspace_icon = "◯"
-
-(* TODO: This should be part of the config of spatial
-   Something like 'for window [app_id="firefox"] icon ""'. *)
-let icon_of info =
-  match info.app_id with
-  | "firefox" -> Some ""
-  | "kitty" -> Some ""
-  | "Slack" -> Some ""
-  | "emacs" -> Some ""
-  | _ -> None
-
-type format = Waybar | Json
+type format = Json | Quiet
 
 let pp_json encoding fmt value =
   let json = Data_encoding.Json.construct encoding value in
   Format.fprintf fmt "%s" Data_encoding.Json.(to_string json)
 
-let workspace_icon workspace windows =
-  List.assq_opt workspace windows |> function
-  | Some info -> Option.value ~default:default_icon (icon_of info)
-  | None -> empty_workspace_icon
-
-let output_get_windows reply index = function
-  | Waybar -> (
-      match (index, reply.focus) with
-      | Some idx, Some focus when idx < List.length reply.windows ->
-          let window = List.nth reply.windows idx in
-          let name =
-            Option.value
-              ~default:(default_icon ^ " " ^ window.app_id)
-              (icon_of window)
-          in
-          let cls = if idx = focus then "focus" else "unfocus" in
-          Format.(printf "%s\n%s\n%s" name window.app_id cls)
-      | Some _, _ | None, _ -> exit 1)
+let output_get_windows (reply : Spatial_ipc.get_windows_reply) = function
   | Json ->
       Format.printf "%a" (pp_json Spatial_ipc.get_windows_reply_encoding) reply
+  | Quiet -> ()
 
-let output_get_workspaces reply index = function
-  | Waybar -> (
-      match index with
-      | Some i ->
-          let cls = if i = reply.current then "focus" else "unfocused" in
-          Format.(
-            printf "%s\n%s\n%s"
-              (workspace_icon i reply.windows)
-              (string_of_int i) cls)
-      | None ->
-          Format.(
-            printf "%a@?"
-              (pp_print_list
-                 ~pp_sep:(fun fmt () -> pp_print_string fmt "  ")
-                 (fun fmt k ->
-                   Format.fprintf fmt "%d:%s" k (workspace_icon k reply.windows)))
-              (List.init 6 (fun x -> x + 1))))
+let output_get_workspaces reply = function
   | Json ->
       Format.printf "%a"
         (pp_json Spatial_ipc.get_workspaces_reply_encoding)
         reply
+  | Quiet -> ()
 
 let output_get_workspace_config reply = function
-  | Waybar ->
-      Format.(
-        printf "%s  %d"
-          (if reply.layout = Maximize then "" else "")
-          reply.column_count)
   | Json ->
       Format.printf "%a"
         (pp_json Spatial_ipc.get_workspace_config_reply_encoding)
         reply
+  | Quiet -> ()
 
 let output_run_command reply = function
-  | Waybar -> ()
   | Json ->
       Format.printf "%a" (pp_json Spatial_ipc.run_command_reply_encoding) reply
+  | Quiet -> ()
 
 let format_clap () =
   Clap.(
@@ -90,8 +42,32 @@ let format_clap () =
            ~description:
              "Specify the format spatialmsg will use to output the result of \
               the RPC command.")
-      [ ([ "waybar" ], [], Waybar); ([ "json" ], [], Json) ]
-      Waybar)
+      [ ([ "json" ], [], Json); ([ "quiet" ], [], Quiet) ]
+      Json)
+
+let exec format = function
+  | "run_command" ->
+      let cmd = Clap.mandatory_string ~placeholder:"CMD" () in
+      Clap.close ();
+      let cmd = command_of_string_exn cmd in
+      let reply = send_command (Run_command cmd) in
+      output_run_command reply format;
+      if not reply.success then exit 1
+  | "get_windows" ->
+      Clap.close ();
+      let reply = send_command Get_windows in
+      output_get_windows reply format
+  | "get_workspaces" ->
+      Clap.close ();
+      let reply = send_command Get_workspaces in
+      output_get_workspaces reply format
+  | "get_workspace_config" ->
+      let reply = send_command Get_workspace_config in
+      Clap.close ();
+      output_get_workspace_config reply format
+  | _ ->
+      Clap.close ();
+      exit 2
 
 let () =
   Clap.description "A client to communicate with a Spatial instance.";
@@ -103,28 +79,4 @@ let () =
       ~description:"Specify the type of IPC message."
   in
 
-  match ty with
-  | "run_command" ->
-      let cmd = Clap.mandatory_string ~placeholder:"CMD" () in
-      Clap.close ();
-      let cmd = command_of_string_exn cmd in
-      let reply = send_command (Run_command cmd) in
-      output_run_command reply format;
-      if not reply.success then exit 1
-  | "get_windows" ->
-      let cmd = Clap.optional_int ~placeholder:"INDEX" () in
-      Clap.close ();
-      let reply = send_command Get_windows in
-      output_get_windows reply cmd format
-  | "get_workspaces" ->
-      let cmd = Clap.optional_int ~placeholder:"INDEX" () in
-      Clap.close ();
-      let reply = send_command Get_workspaces in
-      output_get_workspaces reply cmd format
-  | "get_workspace_config" ->
-      let reply = send_command Get_workspace_config in
-      Clap.close ();
-      output_get_workspace_config reply format
-  | _ ->
-      Clap.close ();
-      exit 2
+  exec format ty

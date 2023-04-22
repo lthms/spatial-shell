@@ -5,6 +5,7 @@
 open Spatial_ipc
 module Map = Map.Make (Int64)
 
+type window_info = { workspace : string; window : window }
 type t = window_info Map.t
 
 let empty : t = Map.empty
@@ -19,7 +20,7 @@ let change_workspace window workspace map =
     (function Some info -> Some { info with workspace } | None -> None)
     map
 
-let pp_window fmt (id, { app_id; name; workspace }) =
+let pp_window fmt (id, { workspace; window = { name; app_id } }) =
   Format.fprintf fmt "{ id = %Ld; app_id = %s; name = %s; workspace = %s }" id
     name app_id workspace
 

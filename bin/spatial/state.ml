@@ -239,7 +239,9 @@ let register_window workspace state (tree : Node.t) =
         workspaces =
           internal_register_window state workspace id state.workspaces;
         windows =
-          Windows_registry.register id { app_id; workspace; name } state.windows;
+          Windows_registry.register id
+            { workspace; window = { app_id; name } }
+            state.windows;
       }
   | _ -> state
 
@@ -251,10 +253,15 @@ let record_window_title_change state (node : Node.t) =
         (function
           | Some info ->
               Some
-                {
-                  info with
-                  Spatial_ipc.name = Option.value ~default:"" node.name;
-                }
+                Windows_registry.
+                  {
+                    info with
+                    window =
+                      {
+                        info.window with
+                        name = Option.value ~default:"" node.name;
+                      };
+                  }
           | None -> None)
         state.windows;
   }
@@ -452,7 +459,7 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
        in
        (res, { success = true })
    | Get_workspaces ->
-       let current, state =
+       let focus, state =
          match int_of_string_opt state.current_workspace with
          | Some current -> (current, state)
          | None ->
@@ -462,9 +469,10 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
        in
        let windows =
          Workspaces_registry.summary state.workspaces
-         |> List.map (fun (k, w) -> (k, Windows_registry.find w state.windows))
+         |> List.map (fun (k, w) ->
+                (k, (Windows_registry.find w state.windows).window))
        in
-       (no_visible_update state, { current; windows })
+       (no_visible_update state, { focus; windows })
    | Get_windows -> (
        let ribbon =
          Workspaces_registry.find_opt state.current_workspace state.workspaces
@@ -479,7 +487,8 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
                    focus = Some (f + List.length ribbon.hidden_left);
                    windows =
                      List.map
-                       (fun id -> Windows_registry.find id state.windows)
+                       (fun id ->
+                         (Windows_registry.find id state.windows).window)
                        (Ribbon.all_windows ribbon);
                  }
              | None -> { focus = None; windows = [] }) ))
