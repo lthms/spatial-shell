@@ -307,9 +307,9 @@ let send_command_workspace dir state =
            (Run_command [ Workspace (string_of_int target) ])
   | None -> ()
 
-let kill_background_process ?wait state =
+let kill_background_process state =
   match state.background_process with
-  | Some (pid, _) -> Jobs.kill ?wait pid
+  | Some (pid, _) -> Jobs.kill pid
   | None -> ()
 
 let spawn_black state =
@@ -323,7 +323,7 @@ let spawn_swaybg state =
       let pid =
         Jobs.spawn (Format.sprintf "swaybg -i %s -m fit -c '#000000'" path)
       in
-      kill_background_process ~wait:0.25 state;
+      kill_background_process state;
       { state with background_process = Some (pid, true) }
   | None -> spawn_black state
 

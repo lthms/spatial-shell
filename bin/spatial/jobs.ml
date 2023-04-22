@@ -11,8 +11,7 @@ let spawn cmd =
   let pid = Unix.fork () in
   if pid = 0 then Unix.execv "/bin/sh" [| "/bin/sh"; "-c"; cmd |] else pid
 
-let kill ?wait pid =
+let kill pid =
   run @@ fun () ->
-  (match wait with Some wait -> Unix.sleepf wait | None -> ());
   Unix.kill pid Sys.sigterm;
   Unix.waitpid [] pid
