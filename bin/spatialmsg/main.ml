@@ -17,7 +17,11 @@ let icon_of info =
   | "emacs" -> Some ""
   | _ -> None
 
-type format = Waybar
+type format = Waybar | Json
+
+let pp_json encoding fmt value =
+  let json = Data_encoding.Json.construct encoding value in
+  Format.fprintf fmt "%s" Data_encoding.Json.(to_string json)
 
 let workspace_icon workspace windows =
   List.assq_opt workspace windows |> function
@@ -36,13 +40,9 @@ let output_get_windows reply index = function
           in
           let cls = if idx = focus then "focus" else "unfocus" in
           Format.(printf "%s\n%s\n%s" name window.app_id cls)
-      | Some _, _ -> ()
-      | None, _ ->
-          List.iteri
-            (fun idx info ->
-              let marker = if reply.focus = Some idx then "*" else "" in
-              Format.printf "| %s%s%s | " marker info.app_id marker)
-            reply.windows)
+      | Some _, _ | None, _ -> exit 1)
+  | Json ->
+      Format.printf "%a" (pp_json Spatial_ipc.get_windows_reply_encoding) reply
 
 let output_get_workspaces reply index = function
   | Waybar -> (
@@ -61,6 +61,10 @@ let output_get_workspaces reply index = function
                  (fun fmt k ->
                    Format.fprintf fmt "%d:%s" k (workspace_icon k reply.windows)))
               (List.init 6 (fun x -> x + 1))))
+  | Json ->
+      Format.printf "%a"
+        (pp_json Spatial_ipc.get_workspaces_reply_encoding)
+        reply
 
 let output_get_workspace_config reply = function
   | Waybar ->
@@ -68,6 +72,15 @@ let output_get_workspace_config reply = function
         printf "%s  %d"
           (if reply.layout = Maximize then "" else "")
           reply.column_count)
+  | Json ->
+      Format.printf "%a"
+        (pp_json Spatial_ipc.get_workspace_config_reply_encoding)
+        reply
+
+let output_run_command reply = function
+  | Waybar -> ()
+  | Json ->
+      Format.printf "%a" (pp_json Spatial_ipc.run_command_reply_encoding) reply
 
 let format_clap () =
   Clap.(
@@ -77,7 +90,7 @@ let format_clap () =
            ~description:
              "Specify the format spatialmsg will use to output the result of \
               the RPC command.")
-      [ ([ "waybar" ], [], Waybar) ]
+      [ ([ "waybar" ], [], Waybar); ([ "json" ], [], Json) ]
       Waybar)
 
 let () =
@@ -95,8 +108,9 @@ let () =
       let cmd = Clap.mandatory_string ~placeholder:"CMD" () in
       Clap.close ();
       let cmd = command_of_string_exn cmd in
-      let { success } = send_command (Run_command cmd) in
-      if not success then exit 1
+      let reply = send_command (Run_command cmd) in
+      output_run_command reply format;
+      if not reply.success then exit 1
   | "get_windows" ->
       let cmd = Clap.optional_int ~placeholder:"INDEX" () in
       Clap.close ();

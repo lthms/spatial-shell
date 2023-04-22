@@ -35,6 +35,13 @@ type get_workspaces_reply = {
 
 type get_workspace_config_reply = { layout : layout; column_count : int }
 
+val run_command_reply_encoding : run_command_reply Data_encoding.t
+val get_windows_reply_encoding : get_windows_reply Data_encoding.t
+val get_workspaces_reply_encoding : get_workspaces_reply Data_encoding.t
+
+val get_workspace_config_reply_encoding :
+  get_workspace_config_reply Data_encoding.t
+
 type 'a t =
   | Run_command : command -> run_command_reply t
   | Get_windows : get_windows_reply t
