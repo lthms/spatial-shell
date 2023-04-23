@@ -1,0 +1,114 @@
+* {
+    border: none;
+    border-radius: 0;
+    font-size: 11px;
+    min-height: 0;
+    min-width: 0;
+}
+
+window#waybar {
+    background: #191919;
+    color: white;
+    font-family: 'JetBrains Mono';
+}
+
+#custom-spatial-config {
+    color: white;
+    font-size: larger;
+    border: 4px solid #3f51b5;
+    background: #3f51b5;
+    min-width: 42px;
+    border-bottom-right-radius: 2px;
+}
+
+#custom-spatial-workspace-1,
+#custom-spatial-workspace-2,
+#custom-spatial-workspace-3,
+#custom-spatial-workspace-4,
+#custom-spatial-workspace-5,
+#custom-spatial-workspace-6 {
+    border-left: 4px solid #191919;
+    border-right: 4px solid #191919;
+    font-size: larger;
+    min-height: 45px;
+    color: #a3a3a3;
+}
+
+.focus {
+    background: #282828;
+}
+
+#custom-spatial-window-0,
+#custom-spatial-window-1,
+#custom-spatial-window-2,
+#custom-spatial-window-3,
+#custom-spatial-window-4,
+#custom-spatial-window-5,
+#custom-spatial-window-6,
+#custom-spatial-window-7,
+#custom-spatial-window-8 {
+    border-top: 4px solid #191919;
+    border-bottom: 4px solid #191919;
+    font-size: larger;
+    color: #a3a3a3;
+    min-width: 55px;
+}
+
+#custom-spatial-workspace-1.focus,
+#custom-spatial-workspace-2.focus,
+#custom-spatial-workspace-3.focus,
+#custom-spatial-workspace-4.focus,
+#custom-spatial-workspace-5.focus,
+#custom-spatial-workspace-6.focus {
+    border-left: 4px solid #3f51b5;
+    border-right: 4px solid #282828;
+    color: white;
+}
+
+#custom-spatial-window-0.focus,
+#custom-spatial-window-1.focus,
+#custom-spatial-window-2.focus,
+#custom-spatial-window-3.focus,
+#custom-spatial-window-4.focus,
+#custom-spatial-window-5.focus,
+#custom-spatial-window-6.focus,
+#custom-spatial-window-7.focus,
+#custom-spatial-window-8.focus
+{
+    border-top: 4px solid #3f51b5;
+    border-bottom: 4px solid #282828;
+    color: white;
+}
+
+#tray {
+    padding: .5rem 1.2rem;
+}
+
+#battery.charging {
+    color: #7dff63;
+}
+
+#battery.critical:not(.charging) {
+    color: #ff2773;
+}
+
+#network.disconnected {
+    color: #ff2773;
+}
+
+#pulseaudio.muted {
+    color: #ff2773;
+}
+
+#temperature.critical {
+    color: #ff2773;
+}
+
+#pulseaudio, #clock, #network, #temperature, #battery, #cpu, #memory {
+    padding: .5rem .1rem;
+}
+
+#clock {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}

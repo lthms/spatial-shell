@@ -1,0 +1,166 @@
+[
+    {
+        "layer": "top",
+        "position": "left",
+        "width": 50,
+        "modules-left": ["custom/spatial-workspace-1", "custom/spatial-workspace-2", "custom/spatial-workspace-3", "custom/spatial-workspace-4", "custom/spatial-workspace-5", "custom/spatial-workspace-6"],
+        "modules-right": ["cpu", "memory", "network", "pulseaudio", "temperature", "battery", "clock"],
+        "custom/spatial-workspace-1": {
+            "exec": "spatialbar workspace 1",
+            "exec-on-event": false,
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-workspace-2": {
+            "exec": "spatialbar workspace 2",
+            "exec-on-event": false,
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-workspace-3": {
+            "exec": "spatialbar workspace 3",
+            "exec-on-event": false,
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-workspace-4": {
+            "exec": "spatialbar workspace 4",
+            "exec-on-event": false,
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-workspace-5": {
+            "exec": "spatialbar workspace 5",
+            "exec-on-event": false,
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-workspace-6": {
+            "exec": "spatialbar workspace 6",
+            "exec-on-event": false,
+            "interval": "once",
+            "signal": 8
+        },
+        "network": {
+            "format-wifi": " ",
+            "format-ethernet": " ",
+            "format-disconnected": "⚠ "
+        },
+        "clock": {
+            "format": "{:%H \n%M}",
+            "tooltip-format": "{:%Y-%m-%d | %H:%M}",
+        },
+        "battery": {
+            "states": {
+                "good": 80,
+                "warning": 30,
+                "critical": 10
+            },
+            "format": "{icon} \n<span size=\"small\">{capacity}</span>",
+            "format-icons": ["", "", "", "", ""]
+        },
+        "temperature": {
+            "critical-threshold": 80,
+            "format": " "
+        },
+        "pulseaudio": {
+            "format": "{icon} ",
+            "format-bluetooth": "{icon}",
+            "format-muted": "",
+            "format-icons": {
+                "headphones": "",
+                "handsfree": "",
+                "headset": "",
+                "phone": "",
+                "portable": "",
+                "car": "",
+                "default": ["", ""]
+            },
+            "on-click": "pavucontrol"
+        },
+        "cpu": {
+            "format": " ",
+        },
+        "memory": {
+            "format": " "
+        },
+    },
+    {
+        "layer": "top",
+        "height": 42,
+        "modules-left": ["custom/spatial-config", "custom/spatial-window-0", "custom/spatial-window-1", "custom/spatial-window-2", "custom/spatial-window-3", "custom/spatial-window-4", "custom/spatial-window-5", "custom/spatial-window-6", "custom/spatial-window-7", "custom/spatial-window-8"],
+        "modules-right": ["tray"],
+        "tray": {
+            "spacing": 10
+        },
+        "custom/spatial-config": {
+            "exec": "spatialbar config --json",
+            "exec-on-event": false,
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-window-0": {
+            "exec": "spatialbar window 0",
+            "exec-on-event": false,
+            "on-click": "spatialmsg \"window 0\"",
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-window-1": {
+            "exec": "spatialbar window 1",
+            "exec-on-event": false,
+            "on-click": "spatialmsg \"window 1\"",
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-window-2": {
+            "exec": "spatialbar window 2",
+            "exec-on-event": false,
+            "on-click": "spatialmsg \"window 2\"",
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-window-3": {
+            "exec": "spatialbar window 3",
+            "exec-on-event": false,
+            "on-click": "spatialmsg \"window 3\"",
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-window-4": {
+            "exec": "spatialbar window 4",
+            "on-click": "spatialmsg \"window 4\"",
+            "exec-on-event": false,
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-window-5": {
+            "exec": "spatialbar window 5",
+            "on-click": "spatialmsg \"window 5\"",
+            "exec-on-event": false,
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-window-6": {
+            "exec": "spatialbar window 6",
+            "on-click": "spatialmsg \"window 6\"",
+            "exec-on-event": false,
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-window-7": {
+            "exec": "spatialbar window 7",
+            "on-click": "spatialmsg \"window 7\"",
+            "exec-on-event": false,
+            "interval": "once",
+            "signal": 8
+        },
+        "custom/spatial-window-8": {
+            "exec": "spatialbar window 8",
+            "on-click": "spatialmsg \"window 8\"",
+            "exec-on-event": false,
+            "interval": "once",
+            "signal": 8
+        },
+    }
+]
