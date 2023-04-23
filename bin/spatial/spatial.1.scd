@@ -28,6 +28,7 @@ exec $spatial
 
 Similarly, assigning bindings to interact with Spatial Shell is best done using
 sway.
+
 ```
 set $spatialmsg /path/to/spatialmsg
 bindsym $mod+h exec $spatialmsg "focus left"

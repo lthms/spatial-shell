@@ -15,7 +15,7 @@ $XDG_RUNTIME_DIR is unset, it defaults to $HOME/.config.
 
 # MESSAGE AND REPLY FORMAT
 
-The format for messages and replies is exactly the same as the one described in
+The format for messages and replies is exactly the same as sway. See
 *sway-ipc*(7).
 
 # MESSAGES AND REPLIES

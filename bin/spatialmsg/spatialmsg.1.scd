@@ -15,10 +15,7 @@ spatialmsg [options...] [message]
 	Shell.
 
 *--json*
-	Prints the response from Spatial Shell as received, that is in JSON. See
-	*spatial-ipc*(7) for a description of the JSON objects returned for each
-	IPC message.
-
+	Prints the response from Spatial Shell as received, that is in JSON.
 *--type, -t <type>*
 	Specify the type of the IPC message. See below.
 
@@ -37,6 +34,10 @@ spatialmsg [options...] [message]
 
 *get_windows*
 	Gets the list of the windows for the current workspace.
+
+See *spatial-ipc*(7) for a description of the JSON objects returned for each IPC
+message.
+
 
 # RETURN CODE
 
