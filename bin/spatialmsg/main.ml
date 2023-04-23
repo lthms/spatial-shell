@@ -4,6 +4,9 @@
 
 open Spatial_ipc
 
+let cli_error = 1
+let spatial_error = 2
+
 type format = Json | Quiet
 
 let pp_json encoding fmt value =
@@ -50,16 +53,18 @@ let clap_close =
     ~on_help:(fun () -> ())
     ~on_error:(fun msg ->
       Format.(fprintf err_formatter "Error: %s@ " msg);
-      exit 1)
+      exit cli_error)
 
 let exec format = function
-  | "run_command" ->
+  | "run_command" -> (
       let cmd = Clap.mandatory_string ~placeholder:"CMD" () in
       clap_close ();
-      let cmd = command_of_string_exn cmd in
-      let reply = send_command (Run_command cmd) in
-      output_run_command reply format;
-      if not reply.success then exit 1
+      match command_of_string cmd with
+      | Some cmd ->
+          let reply = send_command (Run_command cmd) in
+          output_run_command reply format;
+          if not reply.success then exit spatial_error
+      | None -> exit cli_error)
   | "get_windows" ->
       clap_close ();
       let reply = send_command Get_windows in
@@ -74,7 +79,7 @@ let exec format = function
       output_get_workspace_config reply format
   | _ ->
       clap_close ();
-      exit 2
+      exit cli_error
 
 let () =
   Clap.description "A client to communicate with a Spatial instance.";
