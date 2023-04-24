@@ -52,12 +52,12 @@ let take_while cond slice =
   in
   aux 0
 
+let alpha_numeric c =
+  let c = Char.code c in
+  Char.code '0' <= c && c <= Char.code '9'
+
 let int =
-  let+ x =
-    take_while (fun c ->
-        let c = Char.code c in
-        Char.code '0' <= c && c <= Char.code '9')
-  in
+  let+ x = take_while alpha_numeric in
   Slice.to_int x
 
 let rec enum = function

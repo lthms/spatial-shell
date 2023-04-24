@@ -301,9 +301,10 @@ let hide_window_command window =
   let target = Format.sprintf "*%Ld*" window in
   Command.With_criteria (Con_id window, Move_container target)
 
-let show_window_command workspace window =
+let show_window_command ~unfocus_opacity workspace window =
   [
-    Command.With_criteria (Con_id window, Opacity 0.75);
+    Command.With_criteria
+      (Con_id window, Opacity (float_of_int unfocus_opacity /. 100.));
     Command.With_criteria (Con_id window, Move_container workspace);
     Command.With_criteria (Con_id window, Focus);
   ]
@@ -325,11 +326,12 @@ let focused_window ribbon =
 let hide_all_windows_commands ribbon =
   List.map hide_window_command @@ all_windows ribbon
 
-let show_visible_windows_commands workspace ribbon =
+let show_visible_windows_commands ~unfocus_opacity workspace ribbon =
   match ribbon.visible with
   | Some (f, l) when ribbon.layout = Maximize ->
-      show_window_command workspace (List.nth l f)
-  | Some (_, l) -> List.concat_map (show_window_command workspace) l
+      show_window_command ~unfocus_opacity workspace (List.nth l f)
+  | Some (_, l) ->
+      List.concat_map (show_window_command ~unfocus_opacity workspace) l
   | None -> []
 
 let focus_command ribbon =
@@ -342,9 +344,11 @@ let focus_command ribbon =
     (Option.to_list @@ focused_window ribbon)
 
 (* TODO: Decide if we really do need [force_focus]. *)
-let arrange_commands ?force_focus workspace ribbon =
+let arrange_commands ?force_focus ~unfocus_opacity workspace ribbon =
   let hide_commands = hide_all_windows_commands ribbon in
-  let show_commands = show_visible_windows_commands workspace ribbon in
+  let show_commands =
+    show_visible_windows_commands ~unfocus_opacity workspace ribbon
+  in
   let focus_commands =
     focus_command ribbon
     @

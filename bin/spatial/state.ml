@@ -16,6 +16,7 @@ type t = {
   background_process : (int * bool) option;
   background_path : string option;
   ignore_events : bool;
+  unfocus_opacity : int;
 }
 
 type workspace_reorg =
@@ -47,6 +48,7 @@ let empty current_workspace =
     background_process = None;
     background_path = None;
     ignore_events = false;
+    unfocus_opacity = 75;
   }
 
 let set_ignore_events state = { state with ignore_events = true }
@@ -209,7 +211,9 @@ let arrange_workspace_commands ?previous_state ?force_focus workspace state =
   in
   let update_workspace =
     match Workspaces_registry.find_opt workspace state.workspaces with
-    | Some ribbon -> Ribbon.arrange_commands ?force_focus workspace ribbon
+    | Some ribbon ->
+        Ribbon.arrange_commands ~unfocus_opacity:state.unfocus_opacity
+          ?force_focus workspace ribbon
     | None -> []
   in
   change_workspace @ update_workspace
@@ -384,6 +388,9 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
                }
              in
              no_visible_update state
+         | Set_unfocus_opacity unfocus_opacity ->
+             let state = { state with unfocus_opacity } in
+             { state; workspace_reorg = Full; force_focus = None }
          | Background path ->
              let state = { state with background_path = Some path } in
              { state; workspace_reorg = Full; force_focus = None }

@@ -11,6 +11,7 @@ type operation = Incr | Decr
 type command =
   | Default_layout of int option * layout
   | Default_column_count of int option * int
+  | Set_unfocus_opacity of int
   | Background of string
   | Window of int
   | Focus of target
