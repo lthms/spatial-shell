@@ -1,6 +1,8 @@
 (executable
+ (package spatial-shell)
+ (public_name spatial)
  (name main)
- (libraries poll spatial-shell.ipc sway-ipc unix threads))
+ (libraries poll spatial_ipc sway_ipc unix threads))
 
 (rule
  (alias man-pages)

@@ -1,6 +1,8 @@
 (executable
+ (package spatial-shell)
+ (public_name spatialmsg)
  (name main)
- (libraries mltp-ipc spatial-shell.ipc clap unix))
+ (libraries mltp_ipc spatial_ipc clap unix))
 
 (rule
  (alias man-pages)

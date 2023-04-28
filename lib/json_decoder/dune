@@ -1,4 +1,3 @@
 (library
  (name json_decoder)
- (public_name json-decoder)
  (libraries ezjsonm))

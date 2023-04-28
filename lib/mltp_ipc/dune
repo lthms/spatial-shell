@@ -1,4 +1,3 @@
 (library
  (name mltp_ipc)
- (public_name mltp-ipc)
  (libraries unix))

@@ -11,9 +11,8 @@ depends: [
   "dune" {>= "3.0"}
   "data-encoding"
   "poll"
-  "sway-ipc"
   "clap"
-  "miam"
+  "ezjsonm"
   "odoc" {with-doc}
 ]
 build: [

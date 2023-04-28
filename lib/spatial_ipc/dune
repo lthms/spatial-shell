@@ -1,7 +1,6 @@
 (library
  (name spatial_ipc)
- (public_name spatial-shell.ipc)
- (libraries mltp-ipc data-encoding miam))
+ (libraries mltp_ipc data-encoding miam))
 
 (rule
  (alias man-pages)

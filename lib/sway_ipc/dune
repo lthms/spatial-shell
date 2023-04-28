@@ -1,4 +1,3 @@
 (library
  (name sway_ipc)
- (public_name sway-ipc)
- (libraries json-decoder mltp-ipc sway-ipc.types unix))
+ (libraries json_decoder mltp_ipc sway_ipc_types unix))
