@@ -10,8 +10,8 @@ man-pages:
 .PHONY: install
 install: build man-pages
 	@sudo -k
-	@sudo install -v _build/install/default/bin/spatial /usr/local/bin/spatial
-	@sudo install -v _build/install/default/bin/spatialmsg /usr/local/bin/spatialmsg
+	@sudo install -v _build/default/bin/spatial/main.exe /usr/local/bin/spatial
+	@sudo install -v _build/default/bin/spatialmsg/main.exe /usr/local/bin/spatialmsg
 	@sudo install -vD _build/default/bin/spatial/spatial.1 /usr/local/man/man1/spatial.1
 	@sudo install -vD _build/default/bin/spatialmsg/spatialmsg.1 /usr/local/man/man1/spatialmsg.1
 	@sudo install -vD _build/default/bin/spatial/spatial.5 /usr/local/man/man5/spatial.5
