@@ -21,3 +21,8 @@
    (with-stdin-from
     spatial.5.scd
     (run scdoc)))))
+
+(install
+ (files spatial.1 spatial.5)
+ (section man)
+ (package spatial-shell))

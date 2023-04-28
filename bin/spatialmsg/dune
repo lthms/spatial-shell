@@ -12,3 +12,8 @@
    (with-stdin-from
     spatialmsg.1.scd
     (run scdoc)))))
+
+(install
+ (files spatialmsg.1)
+ (section man)
+ (package spatial-shell))

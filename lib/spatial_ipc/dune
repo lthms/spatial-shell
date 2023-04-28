@@ -10,3 +10,8 @@
    (with-stdin-from
     spatial-ipc.7.scd
     (run scdoc)))))
+
+(install
+ (files spatial-ipc.7)
+ (section man)
+ (package spatial-shell))
