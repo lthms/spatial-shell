@@ -25,5 +25,12 @@ uninstall:
 
 .PHONY: build-deps
 build-deps:
-	@opam switch create . ocaml-base-compiler.5.0.0 --deps-only
+	@opam switch create . --no-install --packages "ocaml-base-compiler.5.0.0" --deps-only -y || true
+	@opam pin spatial-shell . --no-action -y
+	@opam install spatial-shell --deps-only -y
+
+.PHONY: build-dev-deps
+build-dev-deps: build-deps
+	@opam pin spatial-dev . --no-action -y
+	@opam install spatial-dev --deps-only -y
 

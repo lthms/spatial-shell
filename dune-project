@@ -16,7 +16,7 @@
 (package
  (name spatial-shell)
  (synopsis
-  "Implementing a spatial model inspired by Material Shell and Paper WM, for Sway.")
+  "Implementing a spatial model inspired by Material Shell and Paper WM, for Sway")
  (depends data-encoding poll clap ezjsonm))
 
 (package

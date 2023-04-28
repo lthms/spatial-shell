@@ -23,6 +23,9 @@ In addition to the `spatial` and `spatialmsg` executables, this command
 installs several man pages: `spatial(1)`, `spatialmsg(1)`, `spatial(5)`, and
 `spatial-ipc(7)`.
 
+If you want to hack Spatial Shell, you can install common development
+dependencies with `make build-dev-deps`.
+
 # Acknowledgement
 
 Spatial Shell could not have been possible without sway, which remains a
