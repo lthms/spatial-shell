@@ -11,7 +11,7 @@
 
 (maintainers "Thomas Letan <lthms@soap.coffee>")
 
-(version 1)
+(version 2-dev)
 
 (package
  (name spatial-shell)
