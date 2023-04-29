@@ -11,8 +11,8 @@ man-pages:
 
 .PHONY: install
 install: build man-pages
-	@install -v _build/default/bin/spatial/main.exe "${DESTDIR}/bin/spatial"
-	@install -v _build/default/bin/spatialmsg/main.exe "${DESTDIR}/bin/spatialmsg"
+	@install -vD _build/default/bin/spatial/main.exe "${DESTDIR}/bin/spatial"
+	@install -vD _build/default/bin/spatialmsg/main.exe "${DESTDIR}/bin/spatialmsg"
 	@install -vD _build/default/bin/spatial/spatial.1 "${DESTDIR}/share/man/man1/spatial.1"
 	@install -vD _build/default/bin/spatialmsg/spatialmsg.1 "${DESTDIR}/share/man/man1/spatialmsg.1"
 	@install -vD _build/default/bin/spatial/spatial.5 "${DESTDIR}/share/man/man5/spatial.5"
