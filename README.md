@@ -8,7 +8,9 @@ It is implemented as a daemon, communicating with Sway using your favorite
 tiling manager’s IPC protocol (if you are curious, have a look at `man
 sway-ipc`!).
 
-## Installing From Source
+## Getting Started
+
+### Building from Source
 
 You will need `opam`.
 
@@ -25,6 +27,18 @@ installs several man pages: `spatial(1)`, `spatialmsg(1)`, `spatial(5)`, and
 
 If you want to hack Spatial Shell, you can install common development
 dependencies with `make build-dev-deps`.
+
+### Archlinux User Repository
+
+Spatial Shell has been packages for Archlinux (see the [AUR
+package](https://aur.archlinux.org/packages/spatial-shell)).
+
+For instance, if you have [`yay`](https://github.com/Jguer/yay) available,
+you can install Spatial Shell with the following command.
+
+```
+yay -S spatial-shell
+```
 
 # Acknowledgement
 
