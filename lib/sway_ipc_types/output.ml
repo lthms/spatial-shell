@@ -5,7 +5,7 @@
 type subpixel_hinting = Rgb | Bgr | Vrgb | Vbgr | None | Unknown
 
 let subpixel_hinting_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [
       ("rgb", Rgb);
       ("bgr", Bgr);
@@ -24,7 +24,7 @@ type transform =
   | Flipped_two_seventy
 
 let transform_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [
       ("normal", Normal);
       ("90", Ninety);
@@ -38,7 +38,7 @@ let transform_decoder =
 type mode = { width : int64; height : int64; refresh : int64 }
 
 let mode_decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ width = field "width" int64
   and+ height = field "height" int64
@@ -48,7 +48,7 @@ let mode_decoder =
 type orientation = Vertical | Horizontal | None
 
 let orientation_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [ ("vertical", Vertical); ("horizontal", Horizontal); ("none", None) ]
 
 type t = {
@@ -71,7 +71,7 @@ type t = {
 type output = t
 
 let decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ name = field "name" string
   and+ make = field "make" string

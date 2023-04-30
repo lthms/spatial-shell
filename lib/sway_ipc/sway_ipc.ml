@@ -29,7 +29,7 @@ let send_command : type a. ?socket:socket -> a Message.t -> a =
   Socket.write_raw_message ~magic_string socket raw;
   let op', payload = Socket.read_raw_message ~magic_string socket in
   assert (op = op');
-  Json_decoder.of_string_exn (Message.reply_decoder cmd) payload
+  Jsoner.Decoding.of_string_exn (Message.reply_decoder cmd) payload
 
 let subscribe events =
   let socket = connect () in

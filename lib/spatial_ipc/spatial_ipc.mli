@@ -31,12 +31,10 @@ type get_windows_reply = { focus : int option; windows : window list }
 type get_workspaces_reply = { focus : int; windows : (int * window) list }
 type get_workspace_config_reply = { layout : layout; column_count : int }
 
-val run_command_reply_encoding : run_command_reply Data_encoding.t
-val get_windows_reply_encoding : get_windows_reply Data_encoding.t
-val get_workspaces_reply_encoding : get_workspaces_reply Data_encoding.t
-
-val get_workspace_config_reply_encoding :
-  get_workspace_config_reply Data_encoding.t
+val run_command_reply_encoding : run_command_reply Jsoner.t
+val get_windows_reply_encoding : get_windows_reply Jsoner.t
+val get_workspaces_reply_encoding : get_workspaces_reply Jsoner.t
+val get_workspace_config_reply_encoding : get_workspace_config_reply Jsoner.t
 
 type 'a t =
   | Run_command : command -> run_command_reply t

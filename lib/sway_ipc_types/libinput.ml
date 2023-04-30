@@ -5,7 +5,7 @@
 type send_events = Enabled | Disabled | Disabled_on_external_mouse | Unknown
 
 let send_events_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [
       ("enabled", Enabled);
       ("disabled", Disabled);
@@ -16,30 +16,31 @@ let send_events_decoder =
 type tap = Enabled | Disabled | Unknown
 
 let tap_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [ ("enabled", Enabled); ("disabled", Disabled); ("unknown", Unknown) ]
 
 type tap_button_map = Lmr | Lrm | Unknown
 
 let tap_button_map_decoder =
-  Json_decoder.string_enum [ ("lmr", Lmr); ("lrm", Lrm); ("unknown", Unknown) ]
+  Jsoner.Decoding.string_enum
+    [ ("lmr", Lmr); ("lrm", Lrm); ("unknown", Unknown) ]
 
 type tap_drag = Enabled | Disabled | Unknown
 
 let tap_drag_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [ ("enabled", Enabled); ("disabled", Disabled); ("unknown", Unknown) ]
 
 type tap_drag_lock = Enabled | Disabled | Unknown
 
 let tap_drag_lock_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [ ("enabled", Enabled); ("disabled", Disabled); ("unknown", Unknown) ]
 
 type accel_profile = None | Flat | Adaptive | Unknown
 
 let accel_profile_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [
       ("none", None);
       ("flat", Flat);
@@ -50,19 +51,19 @@ let accel_profile_decoder =
 type natural_scroll = Enabled | Disabled | Unknown
 
 let natural_scroll_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [ ("enabled", Enabled); ("disabled", Disabled); ("unknown", Unknown) ]
 
 type left_handed = Enabled | Disabled | Unknown
 
 let left_handed_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [ ("enabled", Enabled); ("disabled", Disabled); ("unknown", Unknown) ]
 
 type click_method = None | Button_areas | Clickfinger | Unknown
 
 let click_method_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [
       ("none", None);
       ("button_areas", Button_areas);
@@ -73,13 +74,13 @@ let click_method_decoder =
 type middle_emulation = Enabled | Disabled | Unknown
 
 let middle_emulation_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [ ("enabled", Enabled); ("disabled", Disabled); ("unknown", Unknown) ]
 
 type scroll_method = None | Two_fingers | Edge | On_button_down | Unknown
 
 let scroll_method_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [
       ("none", None);
       ("two_fingers", Two_fingers);
@@ -91,13 +92,13 @@ let scroll_method_decoder =
 type dwt = Enabled | Disabled | Unknown
 
 let dwt_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [ ("enabled", Enabled); ("disabled", Disabled); ("unknown", Unknown) ]
 
 type calibration_matrix = float * float * float * float * float * float
 
 let calibration_matrix_decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ l = list float in
   match l with
@@ -125,7 +126,7 @@ type t = {
 type libinput = t
 
 let decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ send_events = field_opt "send_events" send_events_decoder
   and+ tap = field_opt "tap" tap_decoder

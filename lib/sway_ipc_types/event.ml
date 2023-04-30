@@ -37,7 +37,7 @@ let event_type_of_code = function
   | _ -> raise (Invalid_argument "event_type_of_code")
 
 let event_type_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [
       ("workspace", Workspace);
       ("mode", Mode);
@@ -64,7 +64,7 @@ let event_type_string = function
 type workspace_change = Init | Empty | Focus | Move | Rename | Urgent | Reload
 
 let workspace_change_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [
       ("init", Init);
       ("empty", Empty);
@@ -82,7 +82,7 @@ type workspace_event = {
 }
 
 let workspace_event_decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ change = field "change" workspace_change_decoder
   and+ current = field "current" Node.decoder
@@ -92,7 +92,7 @@ let workspace_event_decoder =
 type mode_event = { change : string; pango_markup : bool }
 
 let mode_event_decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ change = field "change" string
   and+ pango_markup = field "pango_markup" bool in
@@ -110,7 +110,7 @@ type window_change =
   | Mark
 
 let window_change_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [
       ("new", New);
       ("close", Close);
@@ -126,7 +126,7 @@ let window_change_decoder =
 type window_event = { change : window_change; container : Node.t }
 
 let window_event_decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ change = field "change" window_change_decoder
   and+ container = field "container" Node.decoder in
@@ -135,7 +135,7 @@ let window_event_decoder =
 type tick_event = { first : bool; payload : string }
 
 let tick_event_decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ first = field "first" bool and+ payload = field "payload" string in
   { first; payload }
@@ -149,7 +149,7 @@ type t =
 type event = t
 
 let decoder (code : event_type) =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   match code with
   | Workspace ->
@@ -168,4 +168,4 @@ let decoder (code : event_type) =
 
 let event_of_raw_message (opc, payload) =
   let ev = event_type_of_code opc in
-  Json_decoder.of_string_exn (decoder ev) payload
+  Jsoner.Decoding.of_string_exn (decoder ev) payload

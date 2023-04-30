@@ -10,7 +10,6 @@ homepage: "https://github.com/lthms/spatial-shell"
 bug-reports: "https://github.com/lthms/spatial-shell/issues"
 depends: [
   "dune" {>= "3.0"}
-  "data-encoding"
   "poll"
   "clap"
   "ezjsonm"

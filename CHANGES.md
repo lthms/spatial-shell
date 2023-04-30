@@ -1,5 +1,15 @@
 # Spatial Shell Changelog
 
+## Release 2 (Unreleased)
+
+### `spatial`
+
+- Drop the dynamic linking dependency to GMP
+
+### `spatialmsg`
+
+- Drop the dynamic linking dependency to GMP
+
 ## Release 1 (2023-04-29)
 
 The first release of Spatial Shell establishes a strong foundation for the

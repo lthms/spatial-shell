@@ -36,6 +36,7 @@ let field_opt str enc value =
 let list enc = Ezjsonm.get_list enc
 let string = Ezjsonm.get_string
 let int64 = Ezjsonm.get_int64
+let int = Ezjsonm.get_int
 
 let string_enum l =
   let open Syntax in
@@ -44,10 +45,10 @@ let string_enum l =
   with Not_found -> failwith (constant ^ " not a correct value")
 
 let bool = Ezjsonm.get_bool
-let float = Ezjsonm.get_float
+let of_string_exn dec str = Ezjsonm.value_from_string str |> dec
+let of_string dec str = try Some (of_string_exn dec str) with _ -> None
 
 let rec mu : ('a t -> 'a t) -> 'a t =
  fun f_enc value -> (f_enc (mu f_enc)) value
 
-let of_string_exn dec str = Ezjsonm.value_from_string str |> dec
-let of_string dec str = try Some (of_string_exn dec str) with _ -> None
+let float = Ezjsonm.get_float

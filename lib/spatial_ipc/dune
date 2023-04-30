@@ -1,6 +1,6 @@
 (library
  (name spatial_ipc)
- (libraries mltp_ipc data-encoding miam))
+ (libraries mltp_ipc jsoner miam))
 
 (rule
  (alias man-pages)

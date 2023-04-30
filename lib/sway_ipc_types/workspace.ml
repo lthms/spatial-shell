@@ -15,7 +15,7 @@ type t = {
 type workspace = t
 
 let decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ num = field "num" int64
   and+ name = field "name" string

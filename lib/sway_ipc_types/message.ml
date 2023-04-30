@@ -5,7 +5,7 @@
 type subscribe_reply = { success : bool }
 
 let subscribe_reply_decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ success = field "success" bool in
   { success }
@@ -17,7 +17,7 @@ type run_command_reply = {
 }
 
 let run_command_reply_decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ success = field "success" bool
   and+ parse_error = field_opt "parse_error" bool
@@ -27,7 +27,7 @@ let run_command_reply_decoder =
 type send_tick_reply = { success : bool }
 
 let send_tick_reply_decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ success = field "success" bool in
   { success }
@@ -62,10 +62,10 @@ let to_raw_message : type reply. reply t -> Mltp_ipc.Raw_message.t = function
   | Get_tree -> (4l, "")
   | Send_tick payload -> (10l, payload)
 
-let reply_decoder : type reply. reply t -> reply Json_decoder.t = function
-  | Run_command _ -> Json_decoder.list run_command_reply_decoder
-  | Get_workspaces -> Json_decoder.list Workspace.decoder
+let reply_decoder : type reply. reply t -> reply Jsoner.Decoding.t = function
+  | Run_command _ -> Jsoner.Decoding.list run_command_reply_decoder
+  | Get_workspaces -> Jsoner.Decoding.list Workspace.decoder
   | Subscribe _ -> subscribe_reply_decoder
-  | Get_outputs -> Json_decoder.list Output.decoder
+  | Get_outputs -> Jsoner.Decoding.list Output.decoder
   | Get_tree -> Node.decoder
   | Send_tick _ -> send_tick_reply_decoder

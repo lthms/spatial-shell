@@ -129,7 +129,7 @@ let command_to_string = function
 type run_command_reply = { success : bool }
 
 let run_command_reply_encoding =
-  let open Data_encoding in
+  let open Jsoner in
   conv
     (fun { success } -> success)
     (fun success -> { success })
@@ -138,44 +138,42 @@ let run_command_reply_encoding =
 type window = { app_id : string; name : string }
 type get_windows_reply = { focus : int option; windows : window list }
 
-let window_encoding : window Data_encoding.t =
-  let open Data_encoding in
+let window_encoding : window Jsoner.t =
+  let open Jsoner in
   conv
     (fun { app_id; name } -> (app_id, name))
     (fun (app_id, name) -> { app_id; name })
     (obj2 (req "app_id" string) (req "name" string))
 
-let get_windows_reply_encoding : get_windows_reply Data_encoding.t =
-  let open Data_encoding in
+let get_windows_reply_encoding : get_windows_reply Jsoner.t =
+  let open Jsoner in
   conv
     (fun { focus; windows } -> (focus, windows))
     (fun (focus, windows) -> { focus; windows })
-    (obj2 (opt "focus" int31) (req "windows" @@ list window_encoding))
+    (obj2 (opt "focus" int) (req "windows" @@ list window_encoding))
 
 type get_workspaces_reply = { focus : int; windows : (int * window) list }
 
-let get_workspaces_reply_encoding : get_workspaces_reply Data_encoding.t =
-  let open Data_encoding in
+let get_workspaces_reply_encoding : get_workspaces_reply Jsoner.t =
+  let open Jsoner in
   conv
     (fun { focus; windows } -> (focus, windows))
     (fun (focus, windows) -> { focus; windows })
-    (obj2 (req "focus" int31)
+    (obj2 (req "focus" int)
        (req "workspaces"
-       @@ list (obj2 (req "index" int31) (req "focused_window" window_encoding))
-       ))
+       @@ list (obj2 (req "index" int) (req "focused_window" window_encoding))))
 
 type get_workspace_config_reply = { layout : layout; column_count : int }
 
 let layout_encoding =
-  Data_encoding.string_enum [ ("maximize", Maximize); ("column", Column) ]
+  Jsoner.string_enum [ ("maximize", Maximize); ("column", Column) ]
 
-let get_workspace_config_reply_encoding :
-    get_workspace_config_reply Data_encoding.t =
-  let open Data_encoding in
+let get_workspace_config_reply_encoding : get_workspace_config_reply Jsoner.t =
+  let open Jsoner in
   conv
     (fun { layout; column_count } -> (layout, column_count))
     (fun (layout, column_count) -> { layout; column_count })
-    (obj2 (req "layout" layout_encoding) (req "column_count" int31))
+    (obj2 (req "layout" layout_encoding) (req "column_count" int))
 
 type 'a t =
   | Run_command : command -> run_command_reply t
@@ -183,24 +181,19 @@ type 'a t =
   | Get_workspaces : get_workspaces_reply t
   | Get_workspace_config : get_workspace_config_reply t
 
-let reply_encoding : type a. a t -> a Data_encoding.t = function
+let reply_encoding : type a. a t -> a Jsoner.t = function
   | Run_command _ -> run_command_reply_encoding
   | Get_windows -> get_windows_reply_encoding
   | Get_workspaces -> get_workspaces_reply_encoding
   | Get_workspace_config -> get_workspace_config_reply_encoding
 
 let reply_to_string : type a. a t -> a -> string =
- fun cmd reply ->
-  Data_encoding.Json.(to_string (construct (reply_encoding cmd) reply))
+ fun cmd reply -> Jsoner.to_string_exn ~minify:true (reply_encoding cmd) reply
 
 let reply_of_string : type a. a t -> string -> a option =
  fun cmd reply ->
-  let open Data_encoding.Json in
-  try
-    match from_string reply with
-    | Ok json -> Some (destruct (reply_encoding cmd) json)
-    | _ -> None
-  with _ -> None
+  let open Jsoner in
+  from_string (reply_encoding cmd) reply
 
 let reply_of_string_exn cmd reply =
   match reply_of_string cmd reply with

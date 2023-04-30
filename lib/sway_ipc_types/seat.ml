@@ -12,7 +12,7 @@ type t = {
 type seat = t
 
 let decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ name = field "name" string
   and+ capabilities = field "capabilities" int64

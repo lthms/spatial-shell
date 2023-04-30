@@ -11,7 +11,7 @@ type input_type =
   | Switch
 
 let input_type_decoder =
-  Json_decoder.string_enum
+  Jsoner.Decoding.string_enum
     [
       ("keyboard", Keyboard);
       ("pointer", Pointer);
@@ -35,7 +35,7 @@ type t = {
 }
 
 let decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ identifier = field "identifier" string
   and+ name = field "name" string

@@ -13,7 +13,7 @@ type t = {
 type sway_version = t
 
 let decoder =
-  let open Json_decoder in
+  let open Jsoner.Decoding in
   let open Syntax in
   let+ major = field "major" int64
   and+ minor = field "minor" int64
