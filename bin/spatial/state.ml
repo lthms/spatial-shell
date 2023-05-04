@@ -522,9 +522,8 @@ let pp fmt state =
       state.current_workspace Windows_registry.pp state.windows
       Workspaces_registry.pp state.workspaces)
 
-let ( // ) = Filename.concat
-
 let load_config state =
+  let ( // ) = Filename.concat in
   let config_dir =
     match Sys.getenv_opt "XDG_CONFIG_HOME" with
     | Some config_base -> config_base
