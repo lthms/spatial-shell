@@ -5,6 +5,8 @@
 ### `spatial`
 
 - Drop the dynamic linking dependency to GMP
+- Fix moving a window upward being able to make a window disappear if the
+  current workspace is the upmost one.
 
 ### `spatialmsg`
 

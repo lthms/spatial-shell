@@ -146,7 +146,7 @@ let move_window_in_workspace target_workspace state =
 let move_window_up =
   move_window_in_workspace (fun current ->
       match int_of_string_opt current with
-      | Some x when 0 < x -> Some (string_of_int (x - 1))
+      | Some x when 1 < x -> Some (string_of_int (x - 1))
       | _ -> None)
 
 let move_window_down =
