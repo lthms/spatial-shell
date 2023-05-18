@@ -27,7 +27,7 @@ let workspace_handle (ev : Event.workspace_event) state : State.update =
         | Some workspace -> State.set_current_workspace workspace state
         | None -> state
       in
-      { state; workspace_reorg = Light; force_focus = None }
+      { state; workspace_reorg = Full; force_focus = None }
   | Init | Empty | Move | Rename | Urgent | Reload ->
       State.no_visible_update state
 

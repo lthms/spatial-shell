@@ -7,6 +7,8 @@
 - Drop the dynamic linking dependency to GMP
 - Fix moving a window upward being able to make a window disappear if the
   current workspace is the upmost one.
+- Fix windows sometimes disappearing from workspaces when moving the focus
+  upward or downward.
 
 ### `spatialmsg`
 
