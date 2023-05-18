@@ -1,10 +1,10 @@
 # Spatial Shell Changelog
 
-## Release 2 (Unreleased)
+## Release 2 (2023-05-18)
 
 ### `spatial`
 
-- Drop the dynamic linking dependency to GMP
+- Drop the dynamic linking dependency to GMP.
 - Fix moving a window upward being able to make a window disappear if the
   current workspace is the upmost one.
 - Fix windows sometimes disappearing from workspaces when moving the focus
@@ -12,7 +12,7 @@
 
 ### `spatialmsg`
 
-- Drop the dynamic linking dependency to GMP
+- Drop the dynamic linking dependency to GMP.
 
 ## Release 1 (2023-04-29)
 
