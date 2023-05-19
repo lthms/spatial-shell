@@ -1,4 +1,5 @@
 DESTDIR ?= /usr/local
+OCAML_COMPILER ?= ocaml-system
 
 .PHONY: build
 build:
@@ -26,7 +27,7 @@ uninstall:
 
 .PHONY: build-deps
 build-deps:
-	@opam switch create . --no-install --packages "ocaml-base-compiler.5.0.0" --deps-only -y || true
+	@opam switch create . --no-install --packages "${OCAML_COMPILER}" --deps-only -y || true
 	@opam pin spatial-shell . --no-action -y
 	@opam install spatial-shell --deps-only -y
 
