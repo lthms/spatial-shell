@@ -4,7 +4,8 @@
 
 ### `spatial`
 
-- Extend commands `focus` and `move` to support targeting a specific workspace
+- Extend commands `focus` and `move` to support targeting a specific workspace.
+- Fix focus on floating windows.
 
 ## Release 2 (2023-05-18)
 

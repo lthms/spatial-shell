@@ -353,7 +353,11 @@ let arrange_commands ?force_focus ~unfocus_opacity workspace ribbon =
     focus_command ribbon
     @
     match force_focus with
-    | Some w -> [ Command.With_criteria (Con_id w, Opacity 1.0) ]
+    | Some w ->
+        [
+          Command.With_criteria (Con_id w, Focus);
+          With_criteria (Con_id w, Opacity 1.0);
+        ]
     | _ -> []
   in
   hide_commands @ show_commands @ focus_commands
