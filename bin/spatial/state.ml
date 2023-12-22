@@ -156,6 +156,11 @@ let move_window_down =
       | Some x when x < 6 -> Some (string_of_int (x + 1))
       | _ -> None)
 
+let move_window_exact x =
+  move_window_in_workspace (fun _current ->
+      (* TODO: 6 should be configurable *)
+      if x < 6 then Some (string_of_int x) else None)
+
 let move_window_left workspace state =
   {
     state with
@@ -303,7 +308,9 @@ let send_command_workspace dir state =
   | `Next, Some x when x < max_workspace -> Some (x + 1)
   | `Prev, Some x when 1 < x -> Some (x - 1)
   | (`Next | `Prev), Some _ -> None
-  | (`Next | `Prev), None -> Some 0)
+  | (`Next | `Prev), None -> Some 0
+  | `Exact x, _ when x <= max_workspace -> Some x
+  | `Exact _, _ -> None)
   |> function
   | Some target ->
       ignore
@@ -435,6 +442,12 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
                 that we will eventually received. *)
              send_command_workspace `Next state;
              no_visible_update state
+         | Focus (Workspace x) ->
+             (* Don’t update the state, but ask Sway to change the
+                current workspace instead. This will trigger an event
+                that we will eventually received. *)
+             send_command_workspace (`Exact x) state;
+             no_visible_update state
          | Move Left ->
              let state = move_window_left state.current_workspace state in
              { state; workspace_reorg = Full; force_focus = None }
@@ -446,6 +459,9 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
              { state; workspace_reorg = Full; force_focus = None }
          | Move Down ->
              let state = move_window_down state in
+             { state; workspace_reorg = Full; force_focus = None }
+         | Move (Workspace x) ->
+             let state = move_window_exact x state in
              { state; workspace_reorg = Full; force_focus = None }
          | Toggle_layout ->
              let state = toggle_layout state.current_workspace state in

@@ -18,17 +18,20 @@ the config file, via *spatialmsg*(1) or via *spatial-ipc*(7) directly.
 *window* <n>
 	Focus the *n*th window of the current workspace (starting from 0).
 
-*focus* left|right|up|down
+*focus* left|right|up|down|workspace <n>
 	Change the focus of sway to a new container, following the gride
 	maintained by Spatial Shell. *focus right* and *focus left* move the
 	focus horizontally, within a given workspace, while *focus up* and
 	*focus down* move the focus vertically, from one workspace to the other.
+	Finally, *focus workspace n* move the focus to the workspace _n_.
 
-*move* left|right|up|down
+*move* left|right|up|down|workspace <n>
 	Move the focused window within Spatial Shell gride, that is within its
-	current ribbon (left or right) or to a different workspace (up or
-	down). This command will change the current workspace in the latter
-	case, so that the focused window remains focus.
+	current ribbon (left or right) or to a different workspace (up or down).
+	This command will change the current workspace in the latter case.
+	Finally, *move workspace n* move the window to the workspace _n_. In
+	these two cases, the current workspace is updated accordingly, and the
+	moved window retains the focus.
 
 *background* "<path>"
 	Specifies the path of the background image. Spatial Shell relies on

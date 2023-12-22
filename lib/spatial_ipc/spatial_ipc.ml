@@ -23,17 +23,20 @@ let pos_int =
 
 let workspace_parser = pos_int
 
-type target = Left | Right | Up | Down
+type target = Left | Right | Up | Down | Workspace of int
 
 let target_parser =
   let open Miam in
   enum [ ("left", Left); ("right", Right); ("up", Up); ("down", Down) ]
+  <|> let* x = word "workspace" *> int in
+      return (Workspace x)
 
 let target_to_string = function
   | Left -> "left"
   | Right -> "right"
   | Up -> "up"
   | Down -> "down"
+  | Workspace x -> Format.sprintf "workspace %d" x
 
 type layout = Maximize | Column
 

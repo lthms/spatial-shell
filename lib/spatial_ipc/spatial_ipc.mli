@@ -4,7 +4,7 @@
 
 val socket_path : unit -> string
 
-type target = Left | Right | Up | Down
+type target = Left | Right | Up | Down | Workspace of int
 type layout = Maximize | Column
 type operation = Incr | Decr
 

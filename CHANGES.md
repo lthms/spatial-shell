@@ -2,6 +2,10 @@
 
 ## Release 3 (unreleased)
 
+### `spatial`
+
+- Extend commands `focus` and `move` to support targeting a specific workspace
+
 ## Release 2 (2023-05-18)
 
 ### `spatial`
