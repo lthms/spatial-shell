@@ -1,4 +1,4 @@
-DESTDIR ?= /usr/local
+DESTDIR ?= ${HOME}/.local
 OCAML_COMPILER ?= ocaml-system
 
 .PHONY: build
