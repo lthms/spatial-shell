@@ -8,6 +8,8 @@
 - Fix focus on floating windows.
 - Extend commands `background` to specify a mode for the background (either fit
   or fill).
+- Add a basic support for comments in the config file. Line starting with the
+  character # are ignored.
 
 ## Release 2 (2023-05-18)
 

@@ -275,7 +275,8 @@ let from_file path =
     let rec read acc =
       try
         let line = input_line ic in
-        read (command_of_string_exn line :: acc)
+        if 0 < String.length line && String.get line 0 == '#' then read acc
+        else read (command_of_string_exn line :: acc)
       with End_of_file -> List.rev acc
     in
     Some (read [])
