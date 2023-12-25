@@ -14,7 +14,7 @@ type t = {
   default_column_count : int;
   default_column_count_per_workspace : int Workspaces_map.t;
   background_process : (int * bool) option;
-  background_path : string option;
+  background : (Spatial_ipc.mode * string) option;
   ignore_events : bool;
   unfocus_opacity : int;
 }
@@ -46,7 +46,7 @@ let empty current_workspace =
     default_column_count = 2;
     default_column_count_per_workspace = Workspaces_map.empty;
     background_process = None;
-    background_path = None;
+    background = None;
     ignore_events = false;
     unfocus_opacity = 75;
   }
@@ -329,10 +329,12 @@ let spawn_black state =
   { state with background_process = Some (pid, false) }
 
 let spawn_swaybg state =
-  match state.background_path with
-  | Some path ->
+  match state.background with
+  | Some (mode, path) ->
       let pid =
-        Jobs.spawn (Format.sprintf "swaybg -i %s -m fit -c '#000000'" path)
+        Jobs.spawn
+          (Format.sprintf "swaybg -i %s -m %s -c '#000000'" path
+             (Spatial_ipc.string_of_mode mode))
       in
       kill_background_process state;
       { state with background_process = Some (pid, true) }
@@ -349,7 +351,7 @@ let handle_background state =
         | Maximize, Some (_, _) -> 1
         | _, None -> 0
       in
-      match (state.background_process, state.background_path) with
+      match (state.background_process, state.background) with
       | (Some (_, true) | None), Some _ when 1 < visible_count ->
           spawn_black state
       | (Some (_, false) | None), Some _ when visible_count < 2 ->
@@ -398,8 +400,8 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
          | Set_unfocus_opacity unfocus_opacity ->
              let state = { state with unfocus_opacity } in
              { state; workspace_reorg = Full; force_focus = None }
-         | Background path ->
-             let state = { state with background_path = Some path } in
+         | Background (mode, path) ->
+             let state = { state with background = Some (mode, path) } in
              { state; workspace_reorg = Full; force_focus = None }
          | Focus Left ->
              let state =

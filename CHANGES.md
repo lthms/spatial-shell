@@ -6,6 +6,8 @@
 
 - Extend commands `focus` and `move` to support targeting a specific workspace.
 - Fix focus on floating windows.
+- Extend commands `background` to specify a mode for the background (either fit
+  or fill).
 
 ## Release 2 (2023-05-18)
 

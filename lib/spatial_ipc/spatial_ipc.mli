@@ -7,12 +7,15 @@ val socket_path : unit -> string
 type target = Left | Right | Up | Down | Workspace of int
 type layout = Maximize | Column
 type operation = Incr | Decr
+type mode = Fill | Fit
+
+val string_of_mode : mode -> string
 
 type command =
   | Default_layout of int option * layout
   | Default_column_count of int option * int
   | Set_unfocus_opacity of int
-  | Background of string
+  | Background of mode * string
   | Window of int
   | Focus of target
   | Move of target
