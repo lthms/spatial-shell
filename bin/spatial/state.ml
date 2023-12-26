@@ -13,10 +13,7 @@ type t = {
   default_layout_per_workspace : Spatial_ipc.layout Workspaces_map.t;
   default_column_count : int;
   default_column_count_per_workspace : int Workspaces_map.t;
-  background_process : (int * bool) option;
-  background : (Spatial_ipc.mode * string) option;
   ignore_events : bool;
-  unfocus_opacity : int;
 }
 
 type workspace_reorg =
@@ -45,10 +42,7 @@ let empty current_workspace =
     default_layout_per_workspace = Workspaces_map.empty;
     default_column_count = 2;
     default_column_count_per_workspace = Workspaces_map.empty;
-    background_process = None;
-    background = None;
     ignore_events = false;
-    unfocus_opacity = 75;
   }
 
 let set_ignore_events state = { state with ignore_events = true }
@@ -216,9 +210,7 @@ let arrange_workspace_commands ?previous_state ?force_focus workspace state =
   in
   let update_workspace =
     match Workspaces_registry.find_opt workspace state.workspaces with
-    | Some ribbon ->
-        Ribbon.arrange_commands ~unfocus_opacity:state.unfocus_opacity
-          ?force_focus workspace ribbon
+    | Some ribbon -> Ribbon.arrange_commands ?force_focus workspace ribbon
     | None -> []
   in
   change_workspace @ update_workspace
@@ -318,52 +310,6 @@ let send_command_workspace dir state =
            (Run_command [ Workspace (string_of_int target) ])
   | None -> ()
 
-let kill_background_process state =
-  match state.background_process with
-  | Some (pid, _) -> Jobs.kill pid
-  | None -> ()
-
-let spawn_black state =
-  let pid = Jobs.spawn "swaybg -c '#000000'" in
-  kill_background_process state;
-  { state with background_process = Some (pid, false) }
-
-let spawn_swaybg state =
-  match state.background with
-  | Some (mode, path) ->
-      let pid =
-        Jobs.spawn
-          (Format.sprintf "swaybg -i %s -m %s -c '#000000'" path
-             (Spatial_ipc.string_of_mode mode))
-      in
-      kill_background_process state;
-      { state with background_process = Some (pid, true) }
-  | None -> spawn_black state
-
-let handle_background state =
-  match
-    Workspaces_registry.find_opt state.current_workspace state.workspaces
-  with
-  | Some workspace -> (
-      let visible_count =
-        match (workspace.layout, workspace.visible) with
-        | Column, Some (_, l) -> List.length l
-        | Maximize, Some (_, _) -> 1
-        | _, None -> 0
-      in
-      match (state.background_process, state.background) with
-      | (Some (_, true) | None), Some _ when 1 < visible_count ->
-          spawn_black state
-      | (Some (_, false) | None), Some _ when visible_count < 2 ->
-          spawn_swaybg state
-      | None, Some _ -> spawn_swaybg state
-      | None, None -> spawn_black state
-      | Some _, _ -> state)
-  | None -> (
-      match state.background_process with
-      | Some (_, false) | None -> spawn_swaybg state
-      | Some (_, true) -> state)
-
 let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
  fun state cmd ->
   let open Spatial_ipc in
@@ -397,12 +343,6 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
                }
              in
              no_visible_update state
-         | Set_unfocus_opacity unfocus_opacity ->
-             let state = { state with unfocus_opacity } in
-             { state; workspace_reorg = Full; force_focus = None }
-         | Background (mode, path) ->
-             let state = { state with background = Some (mode, path) } in
-             { state; workspace_reorg = Full; force_focus = None }
          | Focus Left ->
              let state =
                {

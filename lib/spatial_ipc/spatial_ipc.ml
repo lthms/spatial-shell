@@ -63,19 +63,9 @@ let workspace_scope_parser =
    Some x)
   <|> return None
 
-type mode = Fill | Fit
-
-let mode_parser =
-  let open Miam in
-  whitespaces *> Miam.enum [ ("fill", Fill); ("fit", Fit) ] <* whitespaces
-
-let string_of_mode = function Fill -> "fill" | Fit -> "fit"
-
 type command =
   | Default_layout of int option * layout
   | Default_column_count of int option * int
-  | Set_unfocus_opacity of int
-  | Background of mode * string
   | Window of int
   | Focus of target
   | Move of target
@@ -92,11 +82,6 @@ let command_parser =
        and+ i = word "default" *> word "column" *> word "count" *> int in
        assert (1 < i);
        Default_column_count (ws, i))
-  <|> (let+ p = word "unfocus" *> word "opacity" *> int in
-       assert (0 <= p && p <= 100);
-       Set_unfocus_opacity p)
-  <|> (let+ mode = word "background" *> mode_parser and+ path = quoted in
-       Background (mode, path))
   <|> (let+ target = word "window" *> int in
        Window target)
   <|> (let+ target = word "focus" *> target_parser in
@@ -128,9 +113,6 @@ let command_to_string = function
         asprintf "%adefault column count %d"
           (pp_print_option (fun fmt x -> fprintf fmt "[workspace=%d] " x))
           workspace x)
-  | Set_unfocus_opacity p -> Format.sprintf "unfocus opacity %d" p
-  | Background (mode, path) ->
-      Format.sprintf "background %s \"%s\"" (string_of_mode mode) path
   | Window dir -> Format.sprintf "window %s" (string_of_int dir)
   | Focus dir -> Format.sprintf "focus %s" (target_to_string dir)
   | Move dir -> Format.sprintf "move %s" (target_to_string dir)

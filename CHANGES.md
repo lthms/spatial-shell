@@ -2,6 +2,12 @@
 
 ## Release 4 (unreleased)
 
+### `spatial`
+
+- Drop support for emulating dimmed unfocused windows by changing the opacity
+  of unfocused windows.
+- Drop any form of background management.
+
 ## Release 3 (2023-12-26)
 
 ### `spatial`
