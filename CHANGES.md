@@ -1,6 +1,6 @@
 # Spatial Shell Changelog
 
-## Release 3 (unreleased)
+## Release 3 (2023-12-26)
 
 ### `spatial`
 
