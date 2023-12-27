@@ -8,7 +8,19 @@ It is implemented as a daemon, communicating with Sway using your favorite
 tiling manager’s IPC protocol (if you are curious, have a look at `man
 sway-ipc`!).
 
-## Getting Started
+## Configuration
+
+The simplest way to start using Spatial Shell with sway is to include the
+minimal configuration file provided in this repository
+(`contrib/sway/spatial.conf`) in your sway config file. You will need to set
+some variables before including it.
+
+Spatial Shell is a lot more enjoyable to use with some visual aids to help you
+visualize the state of the grid. You can find an example configuration for
+[Waybar](https://github.com/Alexays/Waybar) in `contrib/waybar` that works out
+of the box with Spatial Shell.
+
+## Installation
 
 ### Building from Source
 
