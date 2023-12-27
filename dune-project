@@ -26,6 +26,7 @@
  (synopsis
   "Virtual package gathering developers dependencies for hacking the Spatial Shell project")
  (depends
+  dune-release
   ocaml-lsp-server
   odoc
   (ocamlformat
