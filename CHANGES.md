@@ -2,6 +2,9 @@
 
 ## `spatial`
 
+- Fix windows flickering for real (hopefully, this is a long running issue to
+  be honest).
+
 # 4 (2023-12-27)
 
 ## `spatial`
