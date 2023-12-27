@@ -1,19 +1,19 @@
-# Spatial Shell Changelog
+# 5 (unreleased)
 
-## Release 5 (unreleased)
+## `spatial`
 
-## Release 4 (2023-12-27)
+# 4 (2023-12-27)
 
-### `spatial`
+## `spatial`
 
 - Drop support for emulating dimmed unfocused windows by changing the opacity
   of unfocused windows.
 - Drop any form of background management.
 - Fix windows flickering when hitting two shortcuts at once.
 
-## Release 3 (2023-12-26)
+# 3 (2023-12-26)
 
-### `spatial`
+## `spatial`
 
 - Extend commands `focus` and `move` to support targeting a specific workspace.
 - Fix focus on floating windows.
@@ -22,9 +22,9 @@
 - Add a basic support for comments in the config file. Line starting with the
   character # are ignored.
 
-## Release 2 (2023-05-18)
+# 2 (2023-05-18)
 
-### `spatial`
+## `spatial`
 
 - Drop the dynamic linking dependency to GMP.
 - Fix moving a window upward being able to make a window disappear if the
@@ -32,11 +32,11 @@
 - Fix windows sometimes disappearing from workspaces when moving the focus
   upward or downward.
 
-### `spatialmsg`
+## `spatialmsg`
 
 - Drop the dynamic linking dependency to GMP.
 
-## Release 1 (2023-04-29)
+# 1 (2023-04-29)
 
 The first release of Spatial Shell establishes a strong foundation for the
 project. Following in i3 and sway’s footsteps, it introduces a daemon
