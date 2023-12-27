@@ -13,8 +13,8 @@ let tick_handle (ev : Event.tick_event) state : State.update =
     if ev.first then state
     else
       match ev.payload with
-      | "spatial:on" -> State.set_ignore_events state
-      | "spatial:off" -> State.unset_ignore_events state
+      | "spatial:on" -> State.push_ignore_events state
+      | "spatial:off" -> State.pop_ignore_events state
       | _ -> state
   in
   State.no_visible_update state

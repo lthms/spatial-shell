@@ -7,6 +7,7 @@
 - Drop support for emulating dimmed unfocused windows by changing the opacity
   of unfocused windows.
 - Drop any form of background management.
+- Fix windows flickering when hitting two shortcuts at once.
 
 ## Release 3 (2023-12-26)
 

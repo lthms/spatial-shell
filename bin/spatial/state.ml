@@ -13,7 +13,7 @@ type t = {
   default_layout_per_workspace : Spatial_ipc.layout Workspaces_map.t;
   default_column_count : int;
   default_column_count_per_workspace : int Workspaces_map.t;
-  ignore_events : bool;
+  ignore_events : int;
 }
 
 type workspace_reorg =
@@ -42,12 +42,16 @@ let empty current_workspace =
     default_layout_per_workspace = Workspaces_map.empty;
     default_column_count = 2;
     default_column_count_per_workspace = Workspaces_map.empty;
-    ignore_events = false;
+    ignore_events = 0;
   }
 
-let set_ignore_events state = { state with ignore_events = true }
-let unset_ignore_events state = { state with ignore_events = false }
-let ignore_events state = state.ignore_events
+let push_ignore_events state =
+  { state with ignore_events = state.ignore_events + 1 }
+
+let pop_ignore_events state =
+  { state with ignore_events = state.ignore_events - 1 }
+
+let ignore_events state = 0 < state.ignore_events
 
 let default_layout { default_layout; default_layout_per_workspace; _ } workspace
     =
