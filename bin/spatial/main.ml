@@ -24,10 +24,12 @@ let workspace_handle (ev : Event.workspace_event) state : State.update =
   | Focus ->
       let state =
         match ev.current.name with
-        | Some workspace -> State.set_current_workspace workspace state
-        | None -> state
+        | Some workspace
+          when not (String.equal state.State.current_workspace workspace) ->
+            State.set_current_workspace workspace state
+        | _ -> state
       in
-      { state; workspace_reorg = Full; force_focus = None }
+      { state; workspace_reorg = Light; force_focus = None }
   | Init | Empty | Move | Rename | Urgent | Reload ->
       State.no_visible_update state
 
@@ -46,7 +48,7 @@ let window_handle (ev : Event.window_event) state : State.update =
       State.no_visible_update state
   | Event.Focus when not (State.ignore_events state) ->
       let state = State.record_focus_change state ev.container.id in
-      { state; workspace_reorg = Full; force_focus = Some ev.container.id }
+      { state; workspace_reorg = Light; force_focus = Some ev.container.id }
   | Event.Focus | Event.Fullscreen_mode | Event.Move | Event.Mark | Event.Urgent
     ->
       { state; workspace_reorg = None; force_focus = None }
