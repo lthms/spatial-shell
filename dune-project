@@ -21,12 +21,6 @@
  (depends poll clap ezjsonm))
 
 (package
- (name spatial-shell-contrib)
- (synopsis
-  "Various tools and helpers to use Spatial Shell")
- (depends ezjsonm))
-
-(package
  (allow_empty)
  (name spatial-dev)
  (synopsis
