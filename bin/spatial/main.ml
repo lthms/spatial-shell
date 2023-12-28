@@ -22,14 +22,15 @@ let tick_handle (ev : Event.tick_event) state : State.update =
 let workspace_handle (ev : Event.workspace_event) state : State.update =
   match ev.change with
   | Focus ->
-      let state =
+      let state, is_outdated =
         match ev.current.name with
         | Some workspace
           when not (String.equal state.State.current_workspace workspace) ->
             State.set_current_workspace workspace state
-        | _ -> state
+        | _ -> (state, false)
       in
-      { state; workspace_reorg = Light; force_focus = None }
+      let workspace_reorg = if is_outdated then State.Full else Light in
+      { state; workspace_reorg; force_focus = None }
   | Init | Empty | Move | Rename | Urgent | Reload ->
       State.no_visible_update state
 

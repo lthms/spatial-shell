@@ -4,8 +4,10 @@
 
 open Sway_ipc_types
 module Workspaces_map = Stdlib.Map.Make (String)
+module Workspaces_set = Stdlib.Set.Make (String)
 
 type t = {
+  outdated_workspaces : Workspaces_set.t;
   current_workspace : string;
   windows : Windows_registry.t;
   workspaces : Workspaces_registry.t;
@@ -35,6 +37,7 @@ let no_visible_update state =
 
 let empty current_workspace =
   {
+    outdated_workspaces = Workspaces_set.empty;
     current_workspace;
     windows = Windows_registry.empty;
     workspaces = Workspaces_registry.empty;
@@ -74,7 +77,16 @@ let internal_register_window state target_workspace window =
     target_workspace window
 
 let set_current_workspace current_workspace state =
-  { state with current_workspace }
+  let is_outdated =
+    Workspaces_set.mem current_workspace state.outdated_workspaces
+  in
+  ( {
+      state with
+      current_workspace;
+      outdated_workspaces =
+        Workspaces_set.remove current_workspace state.outdated_workspaces;
+    },
+    is_outdated )
 
 let focus_index workspace state index =
   {
@@ -128,6 +140,8 @@ let move_window_in_workspace target_workspace state =
               let ribbon = Ribbon.remove_window window ribbon in
               {
                 state with
+                outdated_workspaces =
+                  Workspaces_set.add current_workspace state.outdated_workspaces;
                 windows =
                   Windows_registry.change_workspace window target_workspace
                     state.windows;
@@ -286,6 +300,11 @@ let unregister_window state window =
   match Windows_registry.find_opt window state.windows with
   | Some info ->
       let windows = Windows_registry.unregister window state.windows in
+      let outdated_workspaces =
+        if state.current_workspace <> info.workspace then
+          Workspaces_set.add info.workspace state.outdated_workspaces
+        else state.outdated_workspaces
+      in
       let workspaces =
         Workspaces_registry.update info.workspace
           (function
@@ -293,7 +312,7 @@ let unregister_window state window =
             | None -> None)
           state.workspaces
       in
-      { state with windows; workspaces }
+      { state with windows; workspaces; outdated_workspaces }
   | None -> state
 
 (* TODO: Make it configurable *)

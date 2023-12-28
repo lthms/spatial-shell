@@ -1,5 +1,11 @@
 # 6 (unreleased)
 
+## `spatial`
+
+- Fix workspaces not being correctly re-arranged on some occasions: when it had
+  lost focus due to a window being moved to another workspace, or when one of
+  its window had been closed while it was not focused.
+
 # 5 (2023-12-27)
 
 ## `spatial`
