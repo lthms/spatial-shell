@@ -40,7 +40,7 @@ let () =
   match Sys.argv.(1) with
   | "config" ->
       let reply = send_command Get_workspace_config in
-      Format.printf "%s" (if reply.layout = Maximize then "" else "")
+      Format.printf "%s\n" (if reply.layout = Maximize then "" else "")
   | "workspace" ->
       let workspace_index = int_of_string Sys.argv.(2) in
       let reply = send_command Get_workspaces in
@@ -48,7 +48,7 @@ let () =
       let is_focus =
         if workspace_index = reply.focus then "focus" else "unfocus"
       in
-      Format.printf "%s\n%d\n%s"
+      Format.printf "%s\n%d\n%s\n"
         (icon_of_workspace window_opt)
         workspace_index is_focus
   | "window" -> (
@@ -59,7 +59,7 @@ let () =
           let is_focus =
             if reply.focus = Some window_index then "focus" else "unfocus"
           in
-          Format.printf "%s\n%s\n%s" (icon_of_window window) window.name
+          Format.printf "%s\n%s\n%s\n" (icon_of_window window) window.name
             is_focus
       | None -> ())
   | cmd -> failwith Format.(sprintf "Unknown command `%s'" cmd)

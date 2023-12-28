@@ -2,8 +2,7 @@ spatialblock(1)
 
 # NAME
 
-spatialblock - Generate contents for status bar blocks compatible with i3blocks
-format.
+spatialblock - Generate contents for status bar blocks.
 
 # SYNOPSIS
 
@@ -15,10 +14,15 @@ spatialblock window <n>
 
 *spatialblock* is a simple program which can be used to populate a status bar
 compatible with blocks about the current state of *spatial*(1). Its output
-satisfies the *i3blocks*(1) format.
+satisfies a format very similar to *i3blocks*(1).
 
-*spatialblock* can be configured to associate icons to application ids
-(typically using a font like Font Awesome or from the Nerd Font family).
+- First line is the contents (text) of the block
+- Second line is the hover text of the block (optional)
+- Third line is a class to characterize the block (optional)
+
+This format works out of the box with *waybar*(5). It will probably require a
+postprocessor for other bars (for instance, *i3blocks*(1) expects colors, not
+classes).
 
 # COMMANDS
 
@@ -36,6 +40,9 @@ satisfies the *i3blocks*(1) format.
 	focused, and _unfocus_ otherwise.
 
 # CONFIGURATION
+
+*spatialblock* can be configured to associate icons to application ids
+(typically using a font like Font Awesome or from the Nerd Font family).
 
 *spatialblock* searches for a config file located at
 $XDG_CONFIG_HOME/spatial/spatialblock.json. If $XDG_CONFIG_HOME is unset, it
