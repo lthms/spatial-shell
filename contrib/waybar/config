@@ -9,37 +9,43 @@
             "exec": "spatialblock workspace 1",
             "exec-on-event": false,
             "interval": "once",
-            "signal": 8
+            "signal": 8,
+            "on-click": "spatialmsg \"focus workspace 1\""
         },
         "custom/spatial-workspace-2": {
             "exec": "spatialblock workspace 2",
             "exec-on-event": false,
             "interval": "once",
-            "signal": 8
+            "signal": 8,
+            "on-click": "spatialmsg \"focus workspace 2\""
         },
         "custom/spatial-workspace-3": {
             "exec": "spatialblock workspace 3",
             "exec-on-event": false,
             "interval": "once",
-            "signal": 8
+            "signal": 8,
+            "on-click": "spatialmsg \"focus workspace 3\""
         },
         "custom/spatial-workspace-4": {
             "exec": "spatialblock workspace 4",
             "exec-on-event": false,
             "interval": "once",
-            "signal": 8
+            "signal": 8,
+            "on-click": "spatialmsg \"focus workspace 4\""
         },
         "custom/spatial-workspace-5": {
             "exec": "spatialblock workspace 5",
             "exec-on-event": false,
             "interval": "once",
-            "signal": 8
+            "signal": 8,
+            "on-click": "spatialmsg \"focus workspace 5\""
         },
         "custom/spatial-workspace-6": {
             "exec": "spatialblock workspace 6",
             "exec-on-event": false,
             "interval": "once",
-            "signal": 8
+            "signal": 8,
+            "on-click": "spatialmsg \"focus workspace 6\""
         },
         "network": {
             "format-wifi": " ",
