@@ -14,7 +14,7 @@ bar {
 In your Spatial Shell configuration, you should add this snippet.
 
 ```
-status_bar_name i3blocks
+status_bar_name "i3blocks"
 ```
 
 This will work, assuming you copy `config` in `~/.config/i3blocks/config`.
