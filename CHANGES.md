@@ -6,15 +6,13 @@
   lost focus due to a window being moved to another workspace, or when one of
   its window had been closed while it was not focused.
 
-## Contrib
-
-### `spatialbar`
+## `spatialblock`
 
 - Rewrite the helper in OCaml, to enjoy (way) better performances leading to a
   smoother UX.
 - Allow to dynamically associate applications ids with icons using a dedicated
-  configuration file (either `$XDG_CONFIG_HOME/spatial/spatialbar.json` or
-  `$HOME/.config/spatial/spatialbar.json`).
+  configuration file (either `$XDG_CONFIG_HOME/spatial/spatialblock.json` or
+  `$HOME/.config/spatial/spatialblock.json`).
 
 # 5 (2023-12-27)
 

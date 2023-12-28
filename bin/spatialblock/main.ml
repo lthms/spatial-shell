@@ -19,7 +19,7 @@ let load_config () =
     | Some config_base -> config_base
     | None -> Sys.getenv "HOME" // ".config"
   in
-  let config_path = config_dir // "spatial" // "spatialbar.json" in
+  let config_path = config_dir // "spatial" // "spatialblock.json" in
   if Sys.file_exists config_path then
     let conf =
       read_file config_path |> Jsoner.Decoding.of_string_exn config_jsoner

@@ -6,37 +6,37 @@
         "modules-left": ["custom/spatial-workspace-1", "custom/spatial-workspace-2", "custom/spatial-workspace-3", "custom/spatial-workspace-4", "custom/spatial-workspace-5", "custom/spatial-workspace-6"],
         "modules-right": ["cpu", "memory", "network", "pulseaudio", "temperature", "battery", "clock"],
         "custom/spatial-workspace-1": {
-            "exec": "spatialbar workspace 1",
+            "exec": "spatialblock workspace 1",
             "exec-on-event": false,
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-workspace-2": {
-            "exec": "spatialbar workspace 2",
+            "exec": "spatialblock workspace 2",
             "exec-on-event": false,
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-workspace-3": {
-            "exec": "spatialbar workspace 3",
+            "exec": "spatialblock workspace 3",
             "exec-on-event": false,
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-workspace-4": {
-            "exec": "spatialbar workspace 4",
+            "exec": "spatialblock workspace 4",
             "exec-on-event": false,
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-workspace-5": {
-            "exec": "spatialbar workspace 5",
+            "exec": "spatialblock workspace 5",
             "exec-on-event": false,
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-workspace-6": {
-            "exec": "spatialbar workspace 6",
+            "exec": "spatialblock workspace 6",
             "exec-on-event": false,
             "interval": "once",
             "signal": 8
@@ -94,69 +94,69 @@
             "spacing": 10
         },
         "custom/spatial-config": {
-            "exec": "spatialbar config --json",
+            "exec": "spatialblock config --json",
             "exec-on-event": false,
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-window-0": {
-            "exec": "spatialbar window 0",
+            "exec": "spatialblock window 0",
             "exec-on-event": false,
             "on-click": "spatialmsg \"window 0\"",
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-window-1": {
-            "exec": "spatialbar window 1",
+            "exec": "spatialblock window 1",
             "exec-on-event": false,
             "on-click": "spatialmsg \"window 1\"",
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-window-2": {
-            "exec": "spatialbar window 2",
+            "exec": "spatialblock window 2",
             "exec-on-event": false,
             "on-click": "spatialmsg \"window 2\"",
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-window-3": {
-            "exec": "spatialbar window 3",
+            "exec": "spatialblock window 3",
             "exec-on-event": false,
             "on-click": "spatialmsg \"window 3\"",
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-window-4": {
-            "exec": "spatialbar window 4",
+            "exec": "spatialblock window 4",
             "on-click": "spatialmsg \"window 4\"",
             "exec-on-event": false,
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-window-5": {
-            "exec": "spatialbar window 5",
+            "exec": "spatialblock window 5",
             "on-click": "spatialmsg \"window 5\"",
             "exec-on-event": false,
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-window-6": {
-            "exec": "spatialbar window 6",
+            "exec": "spatialblock window 6",
             "on-click": "spatialmsg \"window 6\"",
             "exec-on-event": false,
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-window-7": {
-            "exec": "spatialbar window 7",
+            "exec": "spatialblock window 7",
             "on-click": "spatialmsg \"window 7\"",
             "exec-on-event": false,
             "interval": "once",
             "signal": 8
         },
         "custom/spatial-window-8": {
-            "exec": "spatialbar window 8",
+            "exec": "spatialblock window 8",
             "on-click": "spatialmsg \"window 8\"",
             "exec-on-event": false,
             "interval": "once",

@@ -1,0 +1,14 @@
+(executable
+ (package spatial-shell)
+ (public_name spatialblock)
+ (name main)
+ (libraries mltp_ipc spatial_ipc unix jsoner))
+
+(rule
+ (alias man-pages)
+ (action
+  (with-stdout-to
+   spatialblock.1
+   (with-stdin-from
+    spatialblock.1.scd
+    (run scdoc)))))

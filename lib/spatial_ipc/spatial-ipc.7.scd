@@ -143,7 +143,7 @@ A workspace is encoded as an object with the following properties.
         "focused_window":
           { "app_id": "firefox",
             "name":
-              "spatial-shell/spatialbar.py at main · lthms/spatial-shell · GitHub — Mozilla Firefox" } } ] }
+              "spatial-shell/README.md at main · lthms/spatial-shell · GitHub — Mozilla Firefox" } } ] }
 ```
 
 # 3. GET_WORKSPACE_CONFIG

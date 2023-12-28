@@ -18,7 +18,9 @@ some variables before including it.
 Spatial Shell is a lot more enjoyable to use with some visual aids to help you
 visualize the state of the grid. You can find an example configuration for
 [Waybar](https://github.com/Alexays/Waybar) in `contrib/waybar` that works out
-of the box with Spatial Shell.
+of the box with Spatial Shell. This configuration relies on `spatialblock`,
+a small utility program which can be used with any status bar compatible with
+`i3blocks` format.
 
 ## Installation
 
@@ -33,9 +35,9 @@ make build-deps
 make install
 ```
 
-In addition to the `spatial` and `spatialmsg` executables, this command
-installs several man pages: `spatial(1)`, `spatialmsg(1)`, `spatial(5)`, and
-`spatial-ipc(7)`.
+In addition to the `spatial`, `spatialmsg` and `spatialblock` executables, this
+command installs several man pages: `spatial(1)`, `spatialmsg(1)`,
+`spatialblock(1)`, `spatial(5)`, and `spatial-ipc(7)`.
 
 If you want to hack Spatial Shell, you can install common development
 dependencies with `make build-dev-deps`.
