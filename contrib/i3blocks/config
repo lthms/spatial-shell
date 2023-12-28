@@ -1,0 +1,96 @@
+min_width=25
+align=center
+
+[configs]
+full_text="config:"
+align=left
+
+[config]
+command=spatialblock config
+color=#000000
+background=#ffffff
+interval=once
+signal=8
+
+[workspaces]
+full_text="workspaces:"
+align=left
+
+[workspace1]
+command=spatialblock workspace 1 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[workspace2]
+command=spatialblock workspace 2 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[workspace3]
+command=spatialblock workspace 3 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[workspace4]
+command=spatialblock workspace 4 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[workspace5]
+command=spatialblock workspace 5 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[workspace6]
+command=spatialblock workspace 6 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[windowss]
+full_text="windows:"
+align=left
+
+[window0]
+command=spatialblock window 0 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[window1]
+command=spatialblock window 1 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[window2]
+command=spatialblock window 2 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[window3]
+command=spatialblock window 3 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[window4]
+command=spatialblock window 4 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[window5]
+command=spatialblock window 5 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[window6]
+command=spatialblock window 6 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[window7]
+command=spatialblock window 7 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
+
+[window8]
+command=spatialblock window 8 | sed -e 's/^focus/#000000\n#ffffff/'
+interval=once
+signal=8
