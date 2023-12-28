@@ -1,14 +1,17 @@
 open Spatial_ipc
 
 let icon glyph =
-  Format.sprintf {|<span font="Font Awesome 6 Free">%s</span>|} glyph
+  Format.sprintf {|<span size="large" font="JetBrainsMono Nerd Font">%s</span>|}
+    glyph
 
 let icon_of_window window =
   match window.app_id with
   | "firefox" -> icon ""
   | "kitty" -> icon ""
   | "Slack" -> ""
-  | "emacs" | "neovide" -> ""
+  | "emacs" -> ""
+  | "neovide" -> ""
+  | "chromium" -> ""
   | _ -> ""
 
 let icon_of_workspace = function
