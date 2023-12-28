@@ -1,18 +1,18 @@
 # Spatial Shell
 
 Spatial Shell implements a spatial model inspired by Material Shell and Paper
-WM, for Sway. More precisely, it organizes the windows in your workspaces as if
-they are on a ribbon, showing only a fixed number at a time.
+WM, for i3 and Sway. More precisely, it organizes the windows in your
+workspaces as if they are on a ribbon, showing only a fixed number at a time.
 
-It is implemented as a daemon, communicating with Sway using your favorite
-tiling manager’s IPC protocol (if you are curious, have a look at `man
+It is implemented as a daemon, communicating with i3 or Sway using your
+favorite tiling manager’s IPC protocol (if you are curious, have a look at `man
 sway-ipc`!).
 
 ## Configuration
 
 The simplest way to start using Spatial Shell with sway is to include the
 minimal configuration file provided in this repository
-(`contrib/sway/spatial.conf`) in your sway config file. You will need to set
+(`contrib/sway/spatial.conf`) in your i3 or sway config file. You will need to set
 some variables before including it.
 
 Spatial Shell is a lot more enjoyable to use with some visual aids to help you

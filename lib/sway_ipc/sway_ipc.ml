@@ -8,9 +8,11 @@ open Mltp_ipc
 let magic_string = "i3-ipc"
 
 let sway_sock_path () =
-  match Sys.getenv_opt "SWAYSOCK" with
-  | Some path -> path
-  | None -> failwith "SWAYSOCK environment variable is missing"
+  match (Sys.getenv_opt "SWAYSOCK", Sys.getenv_opt "I3SOCK") with
+  | Some path, _ -> path
+  | _, Some path -> path
+  | None, None ->
+      failwith "Both SWAYSOCK and I3SOCK environment variables are missing"
 
 type socket = Socket.socket
 
