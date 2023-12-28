@@ -17,6 +17,7 @@ type command =
   | Layout of layout
   | Toggle_layout
   | Column_count of operation
+  | Set_status_bar_name of string
 
 val command_of_string : string -> command option
 

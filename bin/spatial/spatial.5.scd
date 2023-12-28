@@ -54,6 +54,11 @@ the config file, via *spatialmsg*(1) or via *spatial-ipc*(7) directly.
 	layout. Default is 2, but this can be changed using the *default column
 	count* command (etiher globally or per workspace).
 
+*status_bar_name* <name>
+	Set the name of the status bar. This is used by *spatial*(1) to send it
+	a signal (8) to update it (for instance, when windows are moved around
+	or the focus changes).
+
 # AUTHOR
 
 Developed by Thomas Letan <lthms@soap.coffee>. Fore more information about

@@ -5,6 +5,9 @@
 - Fix workspaces not being correctly re-arranged on some occasions: when it had
   lost focus due to a window being moved to another workspace, or when one of
   its window had been closed while it was not focused.
+- Introduce `status_bar_name <name>` command to specify which status bar to
+  signal when the windows arrangement is updated (was previously hard-coded to
+  waybar).
 
 ## `spatialblock`
 

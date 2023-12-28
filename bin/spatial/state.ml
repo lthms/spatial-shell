@@ -16,11 +16,12 @@ type t = {
   default_column_count : int;
   default_column_count_per_workspace : int Workspaces_map.t;
   ignore_events : int;
+  status_bar_name : string option;
 }
 
 type workspace_reorg =
   | Full  (** Rearrange containers based on Spatial state *)
-  | Light  (** Only signal waybar *)
+  | Light  (** Only signal bar *)
   | None  (** Nothing to do *)
 
 let needs_signal = function Full | Light -> true | None -> false
@@ -46,6 +47,7 @@ let empty current_workspace =
     default_column_count = 2;
     default_column_count_per_workspace = Workspaces_map.empty;
     ignore_events = 0;
+    status_bar_name = None;
   }
 
 let push_ignore_events state =
@@ -444,6 +446,9 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
                decr_maximum_visible_size state.current_workspace state
              in
              { state; workspace_reorg = Full; force_focus = None }
+         | Set_status_bar_name name ->
+             let state = { state with status_bar_name = Some name } in
+             no_visible_update state
        in
        (res, { success = true })
    | Get_workspaces ->
@@ -517,6 +522,12 @@ let load_config state =
       state)
     state
     (Option.value ~default:[] config)
+
+let signal_status_bar state =
+  match state.status_bar_name with
+  | Some name ->
+      ignore (Jobs.shell Format.(sprintf "/usr/bin/pkill -SIGRTMIN+8 %s" name))
+  | None -> ()
 
 let init () =
   let cw = Sway_ipc.get_current_workspace () in

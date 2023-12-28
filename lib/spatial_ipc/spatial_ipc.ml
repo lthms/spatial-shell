@@ -72,6 +72,7 @@ type command =
   | Layout of layout
   | Toggle_layout
   | Column_count of operation
+  | Set_status_bar_name of string
 
 let command_parser =
   let open Miam in
@@ -93,6 +94,8 @@ let command_parser =
   <|> word "toggle" *> word "layout" *> return Toggle_layout
   <|> (let+ op = word "column" *> word "count" *> operation_parser in
        Column_count op)
+  <|> (let+ name = word "status_bar_name" *> quoted in
+       Set_status_bar_name name)
   <* whitespaces
 
 let command_of_string = Miam.(run (command_parser <* empty))
@@ -119,6 +122,7 @@ let command_to_string = function
   | Layout layout -> Format.sprintf "layout %s" (layout_to_string layout)
   | Toggle_layout -> "toggle layout"
   | Column_count op -> Format.sprintf "column count %s" (operation_to_string op)
+  | Set_status_bar_name name -> Format.sprintf {|status_bar_name "%s"|} name
 
 type run_command_reply = { success : bool }
 

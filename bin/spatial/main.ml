@@ -121,8 +121,7 @@ let rec go poll state sway_socket server_socket =
         in
         let state = update.state in
         if State.needs_signal update.workspace_reorg then
-          (* TODO: Be more configurable about that *)
-          ignore (Jobs.shell "/usr/bin/pkill -SIGRTMIN+8 waybar");
+          State.signal_status_bar state;
         if State.needs_arranging update.workspace_reorg then
           State.arrange_current_workspace ~previous_state
             ?force_focus:update.force_focus state;
