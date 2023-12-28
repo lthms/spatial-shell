@@ -25,7 +25,7 @@ let summary (reg : t) =
     (fun (key, ribbon) ->
       match int_of_string_opt key with
       | Some k when 0 <= k -> (
-          match ribbon.Ribbon.visible with
+          match Ribbon.visible_windows_summary ribbon with
           | Some (f, l) -> Some (k, List.nth l f)
           | _ -> None)
       | _ -> None)

@@ -19,6 +19,9 @@ let empty layout column_count =
   assert (0 < column_count);
   { layout; column_count; hidden_left = []; visible = None; hidden_right = [] }
 
+let column_count ribbon = ribbon.column_count
+let layout ribbon = ribbon.layout
+
 let visible_windows_count = function
   | { visible = None; _ } -> 0
   | { visible = Some (f, l); _ } ->
@@ -29,11 +32,6 @@ let rec insert_at n a = function
   | l when n = 0 -> a :: l
   | x :: rst when 0 < n -> x :: insert_at (n - 1) a rst
   | _ -> raise (Invalid_argument "insert_at")
-
-let rec remove_at n = function
-  | _ :: rst when n = 0 -> rst
-  | x :: rst when 0 < n -> x :: remove_at (n - 1) rst
-  | _ -> raise (Invalid_argument "remove_at")
 
 let push_front x l = x :: l
 let pop_front = function x :: l -> Some (x, l) | [] -> None
@@ -307,6 +305,8 @@ let show_window_command workspace window =
     Command.With_criteria (Con_id window, Focus);
   ]
 
+let visible_windows_summary ribbon = ribbon.visible
+
 let visible_windows ribbon =
   match ribbon.visible with
   | Some (f, l) when ribbon.layout = Maximize -> [ List.nth l f ]
@@ -317,6 +317,11 @@ let all_windows ribbon =
   List.rev ribbon.hidden_left
   @ visible_windows { ribbon with layout = Column }
   @ ribbon.hidden_right
+
+let windows_summary ribbon =
+  match ribbon.visible with
+  | Some (f, _) -> Some (f + List.length ribbon.hidden_left, all_windows ribbon)
+  | None -> None
 
 let focused_window ribbon =
   match ribbon.visible with Some (f, l) -> List.nth_opt l f | None -> None

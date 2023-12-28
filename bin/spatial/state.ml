@@ -134,7 +134,7 @@ let move_window_in_workspace target_workspace state =
       in
       match current_ribbon with
       | Some ribbon -> (
-          match ribbon.visible with
+          match Ribbon.visible_windows_summary ribbon with
           | Some (f, l) ->
               let window = List.nth l f in
               let ribbon = Ribbon.remove_window window ribbon in
@@ -469,15 +469,15 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
          match ribbon with
          | None -> { focus = None; windows = [] }
          | Some ribbon -> (
-             match ribbon.visible with
-             | Some (f, _) ->
+             match Ribbon.windows_summary ribbon with
+             | Some (f, l) ->
                  {
-                   focus = Some (f + List.length ribbon.hidden_left);
+                   focus = Some f;
                    windows =
                      List.map
                        (fun id ->
                          (Windows_registry.find id state.windows).window)
-                       (Ribbon.all_windows ribbon);
+                       l;
                  }
              | None -> { focus = None; windows = [] }) ))
    | Get_workspace_config -> (
@@ -487,8 +487,8 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
          with
          | Some workspace ->
              {
-               layout = workspace.layout;
-               column_count = workspace.column_count;
+               layout = Ribbon.layout workspace;
+               column_count = Ribbon.column_count workspace;
              }
          | None ->
              {
