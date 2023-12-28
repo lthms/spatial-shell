@@ -6,6 +6,10 @@ build:
 	@dune build --release bin/spatial/main.exe
 	@dune build --release bin/spatialmsg/main.exe
 
+.PHONY: build-contrib
+build-contrib:
+	@dune build --release contrib/waybar/main.exe
+
 .PHONY: man-pages
 man-pages:
 	@dune build @man-pages
@@ -19,6 +23,10 @@ install: build man-pages
 	@install -vD _build/default/bin/spatial/spatial.5 "${DESTDIR}/share/man/man5/spatial.5"
 	@install -vD _build/default/lib/spatial_ipc/spatial-ipc.7 "${DESTDIR}/share/man/man7/spatial-ipc.7"
 	@install -vD LICENSE "${DESTDIR}/share/licenses/spatial/LICENSE"
+
+.PHONY: install-contrib
+install-contrib:
+	@install -vD _build/default/contrib/waybar/main.exe "${DESTDIR}/bin/spatialbar"
 
 .PHONY: uninstall
 uninstall:

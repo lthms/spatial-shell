@@ -6,6 +6,13 @@
   lost focus due to a window being moved to another workspace, or when one of
   its window had been closed while it was not focused.
 
+## Contrib
+
+### `spatialbar`
+
+- Rewrite the helper in OCaml, to enjoy (way) better performances leading to a
+  smoother UX.
+
 # 5 (2023-12-27)
 
 ## `spatial`
