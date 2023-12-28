@@ -1,8 +1,7 @@
 open Spatial_ipc
 
 let icon glyph =
-  Format.sprintf {|<span size="large" font="JetBrainsMono Nerd Font">%s</span>|}
-    glyph
+  Format.sprintf {|<span font="JetBrainsMono Nerd Font">%s</span>|} glyph
 
 let icon_of_window window =
   match window.app_id with
