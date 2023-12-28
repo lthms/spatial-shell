@@ -2,4 +2,4 @@
  (package spatial-shell-contrib)
  (public_name spatialbar)
  (name main)
- (libraries mltp_ipc spatial_ipc unix))
+ (libraries mltp_ipc spatial_ipc unix jsoner))

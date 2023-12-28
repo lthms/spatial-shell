@@ -12,6 +12,9 @@
 
 - Rewrite the helper in OCaml, to enjoy (way) better performances leading to a
   smoother UX.
+- Allow to dynamically associate applications ids with icons using a dedicated
+  configuration file (either `$XDG_CONFIG_HOME/spatial/spatialbar.json` or
+  `$HOME/.config/spatial/spatialbar.json`).
 
 # 5 (2023-12-27)
 
