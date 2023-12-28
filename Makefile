@@ -25,7 +25,7 @@ install: build man-pages
 	@install -vD LICENSE "${DESTDIR}/share/licenses/spatial/LICENSE"
 
 .PHONY: install-contrib
-install-contrib:
+install-contrib: build-contrib
 	@install -vD _build/default/contrib/waybar/main.exe "${DESTDIR}/bin/spatialbar"
 
 .PHONY: uninstall
