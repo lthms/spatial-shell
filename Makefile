@@ -18,12 +18,14 @@ install: build man-pages
 	@install -vD _build/default/bin/spatialmsg/spatialmsg.1 "${DESTDIR}/share/man/man1/spatialmsg.1"
 	@install -vD _build/default/bin/spatial/spatial.5 "${DESTDIR}/share/man/man5/spatial.5"
 	@install -vD _build/default/lib/spatial_ipc/spatial-ipc.7 "${DESTDIR}/share/man/man7/spatial-ipc.7"
+	@install -vD LICENSE "${DESTDIR}/share/licenses/spatial/LICENSE"
 
 .PHONY: uninstall
 uninstall:
 	@rm -f "${DESTDIR}/bin/spatial" "${DESTDIR}/bin/spatialmsg" "${DESTDIR}/share/man/man1/spatial.1" \
 	       "${DESTDIR}/share/man/man5/spatial.5" "${DESTDIR}/share/man/man1/spatialmsg.1" \
 	       "${DESTDIR}/share/man/man7/spatial-ipc.7"
+	@rm -rf "${DESTDIR}/share/licenses/spatial/"
 
 .PHONY: build-deps
 build-deps:

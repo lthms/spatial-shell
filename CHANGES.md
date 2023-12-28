@@ -12,6 +12,7 @@
 
 - Fix windows flickering for real (hopefully, this is a long running issue to
   be honest).
+- Provide the LICENSE file as part of the installation process.
 
 # 4 (2023-12-27)
 
