@@ -69,6 +69,14 @@ with the following command.
 yay -S spatial-shell
 ```
 
+### Official Binary Builds
+
+Starting with Spatial Shell 5th release, binary builds are attached to GitHub
+releases for Linux (x86_64).
+
+Signatures are provided as well. The maintainer public key is
+[`320E11CB5316864648593D5E14CD43A3866E4C18`][pubkey].
+
 ## Getting Started
 
 ### Configuring Your Favorite WM
@@ -151,3 +159,4 @@ of this project, including for the wording of several man pages.
 [min-config]: ./contrib/sway/spatial.conf
 [waybar]: https://github.com/Alexays/Waybar
 [contrib-dir]: ./contrib/
+[pubkey]: https://soap.coffee/~lthms/files/lthms@soap.coffee.pub
