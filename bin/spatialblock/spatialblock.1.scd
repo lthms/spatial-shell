@@ -20,6 +20,16 @@ satisfies a format very similar to *i3blocks*(1).
 - Second line is the hover text of the block (optional)
 - Third line is a class to characterize the block (optional)
 
+Every line, if not empty, is terminated by a newline character _\n_. Here is a
+valid output of spatialblock.
+
+```
+
+1
+focus
+
+```
+
 This format works out of the box with *waybar*(5). It will probably require a
 postprocessor for other bars (for instance, *i3blocks*(1) expects colors, not
 classes).

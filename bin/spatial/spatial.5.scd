@@ -28,7 +28,8 @@ the config file, via *spatialmsg*(1) or via *spatial-ipc*(7) directly.
 *move* left|right|up|down|workspace <n>
 	Move the focused window within Spatial Shell gride, that is within its
 	current ribbon (left or right) or to a different workspace (up or down).
-	This command will change the current workspace in the latter case.
+	This command will change the current workspace in the latter case,
+	inserting the window on the right of the previously focused one.
 	Finally, *move workspace n* move the window to the workspace _n_. In
 	these two cases, the current workspace is updated accordingly, and the
 	moved window retains the focus.
@@ -36,7 +37,8 @@ the config file, via *spatialmsg*(1) or via *spatial-ipc*(7) directly.
 *default layout* maximize|column++
 *[workspace=*<n>*] default layout* maximize|column
 	Set the default layout used by workspaces when they are first visited.
-	See *spatial*(1) for a description of each layout.
+	Using the *[workspace=*<n>*]* prefix, limit the scope of the command
+	to workspace _n_. See *spatial*(1) for a description of each layout.
 
 *toggle layout*
 	Change the layout of the current workspace. If the workspace was using
@@ -46,7 +48,8 @@ the config file, via *spatialmsg*(1) or via *spatial-ipc*(7) directly.
 *default column count* <m>++
 *[workspace=*<n>*] default column count* <m>
 	Set the default number of windows displayed at most when a workspace
-	uses the _Column_ layout.
+	uses the _Column_ layout. Using the *[workspace=*<n>*]* prefix, limit
+	the scope of the command to workspace _n_.
 
 *column count* increment|decrement
 	Increase (resp. decrease) the maximum number of windows Spatial Shell
@@ -56,8 +59,8 @@ the config file, via *spatialmsg*(1) or via *spatial-ipc*(7) directly.
 
 *status_bar_name* "<name>"
 	Set the name of the status bar (quotes are mandatory). This is used by
-	*spatial*(1) to send it a signal (8) to update it (for instance, when
-	windows are moved around or the focus changes).
+	*spatial*(1) to send it a signal (_SIGMIN+8_) to update it (for
+	instance, when windows are moved around or the focus changes).
 
 # AUTHOR
 
