@@ -18,7 +18,7 @@
  (name spatial-shell)
  (synopsis
   "Implementing a spatial model inspired by Material Shell and Paper WM, for Sway")
- (depends poll clap ezjsonm))
+ (depends poll clap ezjsonm conf-scdoc))
 
 (package
  (allow_empty)

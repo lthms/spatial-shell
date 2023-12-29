@@ -31,9 +31,13 @@ uninstall:
 	       "${DESTDIR}/share/man/man7/spatial-ipc.7"
 	@rm -rf "${DESTDIR}/share/licenses/spatial/"
 
-.PHONY: build-deps
-build-deps:
+_opam/.created:
 	@opam switch create . --no-install --packages "${OCAML_COMPILER}" --deps-only -y || true
+	@touch $@
+
+.PHONY: build-deps
+build-deps: _opam/.created
+	@opam update
 	@opam pin spatial-shell . --no-action -y
 	@opam install spatial-shell --deps-only -y
 

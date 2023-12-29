@@ -13,6 +13,7 @@ depends: [
   "poll"
   "clap"
   "ezjsonm"
+  "conf-scdoc"
   "odoc" {with-doc}
 ]
 build: [
