@@ -4,8 +4,11 @@
 
 type 'a t = { decoder : 'a Json_decoder.t; encoder : 'a Json_encoder.t }
 
+let to_json_exn jsoner value = jsoner.encoder value
+let to_json jsoner value = try Some (jsoner.encoder value) with _ -> None
+
 let to_string_exn ~minify jsoner value =
-  Ezjsonm.value_to_string ~minify (jsoner.encoder value)
+  Ezjsonm.value_to_string ~minify (to_json_exn jsoner value)
 
 let to_string ~minify jsoner value =
   try Some (to_string_exn ~minify jsoner value) with _ -> None
