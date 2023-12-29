@@ -1,4 +1,4 @@
-# 6 (unreleased)
+# 6 (2023-12-29)
 
 ## `spatial`
 
