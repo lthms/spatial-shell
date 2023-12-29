@@ -1,0 +1,3 @@
+(env
+  (static
+   (flags (:standard -cclib -static))))
