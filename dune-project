@@ -12,7 +12,7 @@
 
 (maintainers "Thomas Letan <lthms@soap.coffee>")
 
-(version 6)
+(version 7-dev)
 
 (package
  (name spatial-shell)
