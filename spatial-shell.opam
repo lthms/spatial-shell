@@ -2,7 +2,7 @@
 opam-version: "2.0"
 version: "7-dev"
 synopsis:
-  "Implementing a spatial model inspired by Material Shell and Paper WM, for Sway"
+  "Implementing a spatial model inspired by Material Shell, for i3 and Sway"
 maintainer: ["Thomas Letan <lthms@soap.coffee>"]
 authors: ["Thomas Letan <lthms@soap.coffee>"]
 license: "mpl-2.0"
@@ -10,9 +10,10 @@ homepage: "https://github.com/lthms/spatial-shell"
 bug-reports: "https://github.com/lthms/spatial-shell/issues"
 depends: [
   "dune" {>= "3.0"}
+  "ocaml" {>= "5.0.0"}
   "poll"
-  "clap"
-  "ezjsonm"
+  "clap" {>= "0.3.0"}
+  "ezjsonm" {>= "1.2.0"}
   "conf-scdoc"
   "odoc" {with-doc}
 ]

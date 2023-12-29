@@ -17,8 +17,8 @@
 (package
  (name spatial-shell)
  (synopsis
-  "Implementing a spatial model inspired by Material Shell and Paper WM, for Sway")
- (depends poll clap ezjsonm conf-scdoc))
+  "Implementing a spatial model inspired by Material Shell, for i3 and Sway")
+ (depends (ocaml (>= "5.0.0")) poll (clap (>= "0.3.0")) (ezjsonm (>= "1.2.0")) conf-scdoc))
 
 (package
  (allow_empty)
