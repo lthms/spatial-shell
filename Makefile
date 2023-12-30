@@ -2,6 +2,9 @@ DESTDIR ?= ${HOME}/.local
 OCAML_COMPILER ?= ocaml-system
 BUILD_PROFILE ?= release
 
+.PHONY: all
+all: build man-pages
+
 .PHONY: build
 build:
 	@dune build --profile=${BUILD_PROFILE} bin/spatial/main.exe
@@ -13,7 +16,7 @@ man-pages:
 	@dune build @man-pages
 
 .PHONY: install
-install: build man-pages
+install:
 	@install -vD _build/default/bin/spatial/main.exe "${DESTDIR}/bin/spatial"
 	@install -vD _build/default/bin/spatialmsg/main.exe "${DESTDIR}/bin/spatialmsg"
 	@install -vD _build/default/bin/spatialblock/main.exe "${DESTDIR}/bin/spatialblock"

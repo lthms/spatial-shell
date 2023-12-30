@@ -32,6 +32,8 @@ building and installing Spatial Shell is as simple as the following.
 ```bash
 # install dependencies
 make build-deps
+# build
+make
 # install spatial
 make install
 ```
@@ -45,8 +47,9 @@ opam switch remove .
 # You need a particular version of the OCaml compiler with no dependencies to
 # zstd (unused by Spatial Shell) and using muslc instead of glibc.
 OCAML_COMPILER=ocaml-option-static,ocaml-option-no-compression,ocaml.5.1.1 make build-deps
-# You have to use the `static` profile.
-BUILD_PROFILE=static make install
+# You have to use the `static` profile to build.
+BUILD_PROFILE=static make
+make install
 ```
 
 In addition to the `spatial`, `spatialmsg` and `spatialblock` executables, this

@@ -55,7 +55,8 @@ pushd "${tmp_workspace}"
 git clone -q "${worktree}" .
 OCAML_COMPILER=ocaml-option-static,ocaml-option-no-compression,ocaml.5.1.1 make build-deps
 eval $(opam env)
-BUILD_PROFILE=static DESTDIR=artifacts make install
+BUILD_PROFILE=static make
+DESTDIR=artifacts make install
 opam switch remove . -y
 popd
 mkdir -p _artifacts
