@@ -46,6 +46,8 @@ build-deps: _opam/.created
 	@opam install spatial-shell --deps-only -y
 
 .PHONY: build-dev-deps
-build-dev-deps: build-deps
+build-dev-deps: _opam/.created
+	@opam update
+	@opam pin spatial-shell . --no-action -y
 	@opam pin spatial-dev . --no-action -y
-	@opam install spatial-dev --deps-only -y
+	@opam install spatial-shell spatial-dev --deps-only -y
