@@ -30,4 +30,4 @@
   ocaml-lsp-server
   odoc
   (ocamlformat
-   (= 0.25.1))))
+   (= 0.26.1))))

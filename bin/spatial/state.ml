@@ -485,7 +485,7 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
                        l;
                  }
              | None -> { focus = None; windows = [] }) ))
-   | Get_workspace_config -> (
+   | Get_workspace_config ->
        ( no_visible_update state,
          match
            Workspaces_registry.find_opt state.current_workspace state.workspaces
@@ -499,7 +499,7 @@ let client_command_handle : type a. t -> a Spatial_ipc.t -> update * a =
              {
                layout = default_layout state state.current_workspace;
                column_count = default_column_count state state.current_workspace;
-             } ))
+             } )
     : update * a)
 
 let pp fmt state =
