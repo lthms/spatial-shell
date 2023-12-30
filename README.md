@@ -38,6 +38,23 @@ make
 make install
 ```
 
+> [!IMPORTANT]
+> By default, `make install` installs the files in `$HOME/.local`. As a
+> consequence, Spatial Shell binaries might not be available in your `PATH` out
+> of the box, especially if starting your graphic session from a display
+> manager. A good alternative is to install in `/usr/local`.
+>
+> ```bash
+> DESTDIR=/usr/local make install
+> ```
+>
+> You will probably need to run this command as `root`.
+
+If you want to hack Spatial Shell, you can install common development
+dependencies with `make build-dev-deps`.
+
+### Building Static Binaries from Source
+
 Alternatively, you might want to build statically linked binaries for Spatial
 Shell.
 
@@ -49,16 +66,10 @@ opam switch remove .
 OCAML_COMPILER=ocaml-option-static,ocaml-option-no-compression,ocaml.5.1.1 make build-deps
 # You have to use the `static` profile to build.
 BUILD_PROFILE=static make
+# You can use DESTDIR to choose where the binaries and manpages are installed.
+# See the note in the previous section.
 make install
 ```
-
-In addition to the `spatial`, `spatialmsg` and `spatialblock` executables, this
-command installs several man pages: [`spatial(1)`][spatial.1],
-[`spatialmsg(1)`][spatialmsg.1], [`spatialblock(1)`][spatialblock.1],
-[`spatial(5)`][spatial.5], and [`spatial-ipc(7)`][spatial-ipc.7].
-
-If you want to hack Spatial Shell, you can install common development
-dependencies with `make build-dev-deps`.
 
 ### Archlinux User Repository
 
@@ -81,6 +92,13 @@ Signatures are provided as well. The maintainer public key is
 [`320E11CB5316864648593D5E14CD43A3866E4C18`][pubkey].
 
 ## Getting Started
+
+In addition to the `spatial`, `spatialmsg` and `spatialblock` executables, this
+command installs several man pages: [`spatial(1)`][spatial.1],
+[`spatialmsg(1)`][spatialmsg.1], [`spatialblock(1)`][spatialblock.1],
+[`spatial(5)`][spatial.5], and [`spatial-ipc(7)`][spatial-ipc.7].
+
+Spatial Shell is primilarly documented via these manpages.
 
 ### Configuring Your Favorite WM
 
