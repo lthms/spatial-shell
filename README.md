@@ -170,11 +170,11 @@ of this project, including for the wording of several man pages.
 [material-shell]: https://material-shell.com/
 [i3]: https://i3wm.org/
 [sway]: https://swaywm.org/
-[spatial.1]: https://lthms.github.io/spatial-shell/spatial.1.html
-[spatialmsg.1]: https://lthms.github.io/spatial-shell/spatialmsg.1.html
-[spatialblock.1]: https://lthms.github.io/spatial-shell/spatialblock.1.html
-[spatial.5]: https://lthms.github.io/spatial-shell/spatial.5.html
-[spatial-ipc.7]: https://lthms.github.io/spatial-shell/spatial-ipc.7.html
+[spatial.1]: https://spatial-shell.app/spatial.1.html
+[spatialmsg.1]: https://spatial-shell.app/spatialmsg.1.html
+[spatialblock.1]: https://spatial-shell.app/spatialblock.1.html
+[spatial.5]: https://spatial-shell.app/spatial.5.html
+[spatial-ipc.7]: https://spatial-shell.app/spatial-ipc.7.html
 [aur]: https://aur.archlinux.org/packages/spatial-shell
 [yay]: https://github.com/Jguer/yay
 [min-config]: ./contrib/sway/spatial.conf
