@@ -1,0 +1,37 @@
+name: build
+run-name: Build Spatial Shell
+on: [push]
+jobs:
+  build_matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ocaml_compiler: [ocaml.5.0.0, ocaml.5.1.1]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system dependencies
+        run: sudo apt install opam scdoc
+      - name: Initialize Opam
+        run: opam init -n --bare
+      - name: Install dependencies
+        run: make build-deps OCAML_COMPILER="${{ matrix.ocaml_compiler }}"
+      - name: Build Spatial Shell
+        run: |
+          eval $(opam env)
+          make
+
+  build_static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system dependencies
+        run: sudo apt install opam scdoc musl-dev musl-tools
+      - name: Initialize Opam
+        run: opam init -n --bare
+      - name: Build static binaries
+        run: ./scripts/prepare-release-artifacts.sh
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          path: _artifacts/spatial-shell-*.tar.gz
+          name: spatial-shell-${{ github.sha }}
