@@ -4,12 +4,12 @@ module App_id_map = Hashtbl.Make (String)
 let app_id_map = App_id_map.create 10
 
 let entry_jsoner =
-  let open Jsoner.Decoding in
+  let open Ezjsonm_encoding.Decoding in
   let open Syntax in
   let+ app_id = field "app_id" string and+ icon = field "icon" string in
   (app_id, icon)
 
-let config_jsoner = Jsoner.Decoding.list entry_jsoner
+let config_jsoner = Ezjsonm_encoding.Decoding.list entry_jsoner
 
 let load_config () =
   let read_file path = In_channel.(with_open_text path input_all) in
@@ -22,7 +22,8 @@ let load_config () =
   let config_path = config_dir // "spatial" // "spatialblock.json" in
   if Sys.file_exists config_path then
     let conf =
-      read_file config_path |> Jsoner.Decoding.of_string_exn config_jsoner
+      read_file config_path
+      |> Ezjsonm_encoding.Decoding.of_string_exn config_jsoner
     in
     List.iter (fun (entry, icon) -> App_id_map.add app_id_map entry icon) conf
   else ()

@@ -2,7 +2,7 @@
  (package spatial-shell)
  (public_name spatialblock)
  (name main)
- (libraries mltp_ipc spatial_ipc unix jsoner))
+ (libraries mltp_ipc spatial_ipc unix ezjsonm-encoding))
 
 (rule
  (alias man-pages)

@@ -6,7 +6,7 @@ type t = { x : int64; y : int64; width : int64; height : int64 }
 type rect = t
 
 let decoder =
-  let open Jsoner.Decoding in
+  let open Ezjsonm_encoding.Decoding in
   let open Syntax in
   let+ x = field "x" int64
   and+ y = field "y" int64

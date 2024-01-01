@@ -10,7 +10,7 @@ type fullscreen_mode =
   | Global_fullscreen (* 2 *)
 
 let fullscreen_mode_decoder =
-  let open Jsoner.Decoding in
+  let open Ezjsonm_encoding.Decoding in
   let open Syntax in
   let+ i = int64 in
   match i with
@@ -22,7 +22,7 @@ let fullscreen_mode_decoder =
 type node_type = Root | Output | Workspace | Con | Floating_con
 
 let node_type_decoder =
-  Jsoner.Decoding.string_enum
+  Ezjsonm_encoding.Decoding.string_enum
     [
       ("root", Root);
       ("output", Output);
@@ -34,7 +34,7 @@ let node_type_decoder =
 type border = Normal | None | Pixel | Csd
 
 let border_decoder =
-  Jsoner.Decoding.string_enum
+  Ezjsonm_encoding.Decoding.string_enum
     [ ("normal", Normal); ("none", None); ("pixel", Pixel); ("csd", Csd) ]
 
 type layout =
@@ -46,7 +46,7 @@ type layout =
   | None
 
 let layout_decoder =
-  Jsoner.Decoding.string_enum
+  Ezjsonm_encoding.Decoding.string_enum
     [
       ("splith", Split_horizontal);
       ("splitv", Split_vertical);
@@ -58,17 +58,17 @@ let layout_decoder =
 
 type mark = string
 
-let mark_decoder = Jsoner.Decoding.string
+let mark_decoder = Ezjsonm_encoding.Decoding.string
 
 type application_state = Enabled | None
 
 let application_state_decoder =
-  Jsoner.Decoding.string_enum [ ("enabled", Enabled); ("none", None) ]
+  Ezjsonm_encoding.Decoding.string_enum [ ("enabled", Enabled); ("none", None) ]
 
 type user_state = Focus | Fullscreen | Open | Visible | None
 
 let user_state_decoder =
-  Jsoner.Decoding.string_enum
+  Ezjsonm_encoding.Decoding.string_enum
     [
       ("focus", Focus);
       ("fullscreen", Fullscreen);
@@ -80,7 +80,7 @@ let user_state_decoder =
 type idle_inhibitors = { application : application_state; user : user_state }
 
 let idle_inhibitors_decoder =
-  let open Jsoner.Decoding in
+  let open Ezjsonm_encoding.Decoding in
   let open Syntax in
   let+ application = application_state_decoder and+ user = user_state_decoder in
   { application; user }
@@ -95,7 +95,7 @@ type window_properties = {
 }
 
 let window_properties_decoder =
-  let open Jsoner.Decoding in
+  let open Ezjsonm_encoding.Decoding in
   let open Syntax in
   let+ title = field "title" string
   and+ window_class = field "window_class" string
@@ -140,7 +140,7 @@ type t = {
 type node = t
 
 let decoder =
-  let open Jsoner.Decoding in
+  let open Ezjsonm_encoding.Decoding in
   let open Syntax in
   mu (fun node_decoder ->
       let+ id = field "id" int64

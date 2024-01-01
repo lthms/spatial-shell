@@ -1,3 +1,3 @@
 (library
  (name sway_ipc_types)
- (libraries mltp_ipc jsoner))
+ (libraries mltp_ipc ezjsonm-encoding))

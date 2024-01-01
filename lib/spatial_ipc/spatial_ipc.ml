@@ -127,7 +127,7 @@ let command_to_string = function
 type run_command_reply = { success : bool }
 
 let run_command_reply_encoding =
-  let open Jsoner in
+  let open Ezjsonm_encoding in
   conv
     (fun { success } -> success)
     (fun success -> { success })
@@ -136,15 +136,15 @@ let run_command_reply_encoding =
 type window = { app_id : string; name : string }
 type get_windows_reply = { focus : int option; windows : window list }
 
-let window_encoding : window Jsoner.t =
-  let open Jsoner in
+let window_encoding : window Ezjsonm_encoding.t =
+  let open Ezjsonm_encoding in
   conv
     (fun { app_id; name } -> (app_id, name))
     (fun (app_id, name) -> { app_id; name })
     (obj2 (req "app_id" string) (req "name" string))
 
-let get_windows_reply_encoding : get_windows_reply Jsoner.t =
-  let open Jsoner in
+let get_windows_reply_encoding : get_windows_reply Ezjsonm_encoding.t =
+  let open Ezjsonm_encoding in
   conv
     (fun { focus; windows } -> (focus, windows))
     (fun (focus, windows) -> { focus; windows })
@@ -152,8 +152,8 @@ let get_windows_reply_encoding : get_windows_reply Jsoner.t =
 
 type get_workspaces_reply = { focus : int; windows : (int * window) list }
 
-let get_workspaces_reply_encoding : get_workspaces_reply Jsoner.t =
-  let open Jsoner in
+let get_workspaces_reply_encoding : get_workspaces_reply Ezjsonm_encoding.t =
+  let open Ezjsonm_encoding in
   conv
     (fun { focus; windows } -> (focus, windows))
     (fun (focus, windows) -> { focus; windows })
@@ -164,10 +164,11 @@ let get_workspaces_reply_encoding : get_workspaces_reply Jsoner.t =
 type get_workspace_config_reply = { layout : layout; column_count : int }
 
 let layout_encoding =
-  Jsoner.string_enum [ ("maximize", Maximize); ("column", Column) ]
+  Ezjsonm_encoding.string_enum [ ("maximize", Maximize); ("column", Column) ]
 
-let get_workspace_config_reply_encoding : get_workspace_config_reply Jsoner.t =
-  let open Jsoner in
+let get_workspace_config_reply_encoding :
+    get_workspace_config_reply Ezjsonm_encoding.t =
+  let open Ezjsonm_encoding in
   conv
     (fun { layout; column_count } -> (layout, column_count))
     (fun (layout, column_count) -> { layout; column_count })
@@ -179,18 +180,19 @@ type 'a t =
   | Get_workspaces : get_workspaces_reply t
   | Get_workspace_config : get_workspace_config_reply t
 
-let reply_encoding : type a. a t -> a Jsoner.t = function
+let reply_encoding : type a. a t -> a Ezjsonm_encoding.t = function
   | Run_command _ -> run_command_reply_encoding
   | Get_windows -> get_windows_reply_encoding
   | Get_workspaces -> get_workspaces_reply_encoding
   | Get_workspace_config -> get_workspace_config_reply_encoding
 
 let reply_to_string : type a. a t -> a -> string =
- fun cmd reply -> Jsoner.to_string_exn ~minify:true (reply_encoding cmd) reply
+ fun cmd reply ->
+  Ezjsonm_encoding.to_string_exn ~minify:true (reply_encoding cmd) reply
 
 let reply_of_string : type a. a t -> string -> a option =
  fun cmd reply ->
-  let open Jsoner in
+  let open Ezjsonm_encoding in
   from_string (reply_encoding cmd) reply
 
 let reply_of_string_exn cmd reply =

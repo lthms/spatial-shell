@@ -10,7 +10,7 @@ let spatial_error = 2
 type format = Json | Quiet
 
 let pp_json encoding fmt value =
-  let json = Jsoner.to_string_exn ~minify:true encoding value in
+  let json = Ezjsonm_encoding.to_string_exn ~minify:true encoding value in
   Format.fprintf fmt "%s" json
 
 let output_get_windows (reply : Spatial_ipc.get_windows_reply) = function

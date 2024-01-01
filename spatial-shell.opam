@@ -13,7 +13,7 @@ depends: [
   "ocaml" {>= "5.0.0"}
   "poll"
   "clap" {>= "0.3.0"}
-  "ezjsonm" {>= "1.2.0"}
+  "ezjsonm-encoding"
   "conf-scdoc"
   "odoc" {with-doc}
 ]
