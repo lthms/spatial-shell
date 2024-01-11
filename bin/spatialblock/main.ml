@@ -1,5 +1,11 @@
 open Spatial_ipc
-module App_id_map = Hashtbl.Make (String)
+
+module App_id_map = Hashtbl.Make (struct
+  type t = string
+
+  let equal = String.equal
+  let hash = Hashtbl.hash
+end)
 
 let app_id_map = App_id_map.create 10
 

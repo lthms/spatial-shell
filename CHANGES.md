@@ -1,5 +1,7 @@
 # 7 (unreleased)
 
+- Drop dependency to OCaml 5.
+
 # 6 (2023-12-29)
 
 ## `spatial`

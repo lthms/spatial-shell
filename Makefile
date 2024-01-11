@@ -1,5 +1,5 @@
 DESTDIR ?= ${HOME}/.local
-OCAML_COMPILER ?= ocaml.5.1.1
+OCAML_COMPILER ?= ocaml-system
 BUILD_PROFILE ?= release
 
 .PHONY: all
