@@ -32,6 +32,9 @@ building and installing Spatial Shell is as simple as the following.
 ```bash
 # install dependencies
 make build-deps
+# might be unnecessary depending on your setup. If you are not familiar with
+# OCaml and Opam, you probably need it.
+eval $(opam env)
 # build
 make
 # install spatial
