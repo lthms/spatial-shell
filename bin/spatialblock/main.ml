@@ -18,7 +18,6 @@ let entry_jsoner =
 let config_jsoner = Ezjsonm_encoding.Decoding.list entry_jsoner
 
 let load_config () =
-  let read_file path = In_channel.(with_open_text path input_all) in
   let ( // ) = Filename.concat in
   let config_dir =
     match Sys.getenv_opt "XDG_CONFIG_HOME" with
@@ -28,8 +27,8 @@ let load_config () =
   let config_path = config_dir // "spatial" // "spatialblock.json" in
   if Sys.file_exists config_path then
     let conf =
-      read_file config_path
-      |> Ezjsonm_encoding.Decoding.of_string_exn config_jsoner
+      open_in config_path |> Ezjsonm.from_channel
+      |> Ezjsonm_encoding.Decoding.from_value_exn config_jsoner
     in
     List.iter (fun (entry, icon) -> App_id_map.add app_id_map entry icon) conf
   else ()

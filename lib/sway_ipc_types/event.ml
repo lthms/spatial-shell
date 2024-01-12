@@ -168,4 +168,4 @@ let decoder (code : event_type) =
 
 let event_of_raw_message (opc, payload) =
   let ev = event_type_of_code opc in
-  Ezjsonm_encoding.Decoding.of_string_exn (decoder ev) payload
+  Ezjsonm_encoding.Decoding.from_string_exn (decoder ev) payload

@@ -10,10 +10,10 @@ homepage: "https://github.com/lthms/spatial-shell"
 bug-reports: "https://github.com/lthms/spatial-shell/issues"
 depends: [
   "dune" {>= "3.0"}
-  "ocaml" {>= "4.12"}
+  "ocaml" {>= "4.08"}
   "poll"
   "clap" {>= "0.3.0"}
-  "ezjsonm-encoding"
+  "ezjsonm-encoding" {>= "2.0.0"}
   "conf-scdoc"
   "odoc" {with-doc}
 ]
