@@ -51,3 +51,6 @@ build-dev-deps: _opam/.created
 	@opam pin spatial-shell . --no-action -y
 	@opam pin spatial-dev . --no-action -y
 	@opam install spatial-shell spatial-dev --deps-only -y
+
+# Disable parallel execution to ensure we don’t invoke `dune' in parallel.
+.NOTPARALLEL:
