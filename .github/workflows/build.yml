@@ -6,7 +6,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ocaml_compiler: [ocaml.5.0.0, ocaml.5.1.1]
+        ocaml_compiler: [
+            # ocaml-system for Debian stable and Ubuntu LTS
+            ocaml.4.13.1,
+            # OCaml LTS version
+            ocaml.4.14.1,
+            # ocaml-system for Fedora 39
+            ocaml.5.0.0,
+            # ocaml-system for Archlinux
+            ocaml.5.1.0
+          ]
     steps:
       - uses: actions/checkout@v4
       - name: Install system dependencies
