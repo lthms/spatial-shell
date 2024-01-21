@@ -18,7 +18,7 @@
  (name spatial-shell)
  (synopsis
   "Implementing a spatial model inspired by Material Shell, for i3 and Sway")
- (depends (ocaml (>= "4.08")) poll (clap (>= "0.3.0")) (ezjsonm-encoding (>= "2.0.0")) conf-scdoc))
+ (depends (ocaml (>= "4.08")) poll (cmdliner (>= "1.2.0")) (ezjsonm-encoding (>= "2.0.0")) conf-scdoc))
 
 (package
  (allow_empty)

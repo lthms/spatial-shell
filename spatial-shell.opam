@@ -12,7 +12,7 @@ depends: [
   "dune" {>= "3.0"}
   "ocaml" {>= "4.08"}
   "poll"
-  "clap" {>= "0.3.0"}
+  "cmdliner" {>= "1.2.0"}
   "ezjsonm-encoding" {>= "2.0.0"}
   "conf-scdoc"
   "odoc" {with-doc}

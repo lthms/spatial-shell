@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. *)
 
 open Spatial_ipc
+open Cmdliner
 
 let cli_error = 1
 let spatial_error = 2
@@ -37,28 +38,9 @@ let output_run_command reply = function
       Format.printf "%a" (pp_json Spatial_ipc.run_command_reply_encoding) reply
   | Quiet -> ()
 
-let format_clap () =
-  Clap.(
-    flag_enum
-      ~section:
-        (section "FORMAT"
-           ~description:
-             "Specify the format spatialmsg will use to output the result of \
-              the RPC command.")
-      [ ([ "json" ], [], Json); ([ "quiet" ], [], Quiet) ]
-      Json)
-
-let clap_close =
-  Clap.close
-    ~on_help:(fun () -> ())
-    ~on_error:(fun msg ->
-      Format.(fprintf err_formatter "Error: %s@ " msg);
-      exit cli_error)
-
-let exec format = function
+let exec format ty cmd =
+  match ty with
   | "run_command" -> (
-      let cmd = Clap.mandatory_string ~placeholder:"CMD" () in
-      clap_close ();
       match command_of_string cmd with
       | Some cmd ->
           let reply = send_command (Run_command cmd) in
@@ -66,29 +48,41 @@ let exec format = function
           if not reply.success then exit spatial_error
       | None -> exit cli_error)
   | "get_windows" ->
-      clap_close ();
       let reply = send_command Get_windows in
       output_get_windows reply format
   | "get_workspaces" ->
-      clap_close ();
       let reply = send_command Get_workspaces in
       output_get_workspaces reply format
   | "get_workspace_config" ->
       let reply = send_command Get_workspace_config in
-      clap_close ();
       output_get_workspace_config reply format
-  | _ ->
-      clap_close ();
-      exit cli_error
+  | _ -> exit cli_error
 
-let () =
-  Clap.description "A client to communicate with a Spatial instance.";
+let ty =
+  Arg.(
+    value & opt string "run_command"
+    & info [ "t"; "type" ] ~docv:"type"
+        ~doc:"Specify the type of the IPC message.")
 
-  let format = format_clap () in
+let json =
+  Arg.(
+    info [ "json" ]
+      ~doc:
+        "Prints the response from Spatial Shell as received, that is in JSON.")
 
-  let ty =
-    Clap.default_string ~long:"type" ~short:'t' ~last:true "run_command"
-      ~description:"Specify the type of IPC message."
-  in
+let quiet =
+  Arg.(
+    info [ "quiet" ]
+      ~doc:
+        "Sends the IPC message, but does not print the response from Spatial \
+         Shell.")
 
-  exec format ty
+let format = Arg.(value & vflag Json [ (Json, json); (Quiet, quiet) ])
+let cmd = Arg.(value & pos 0 string "" & info [] ~docv:"message")
+let spatialmsg_t = Term.(const exec $ format $ ty $ cmd)
+
+let spatialmsg =
+  let info = Cmd.info "spatialmsg" ~version:"6" in
+  Cmd.v info spatialmsg_t
+
+let () = exit (Cmd.eval spatialmsg)

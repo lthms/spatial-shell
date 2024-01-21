@@ -1,6 +1,8 @@
 # 7 (unreleased)
 
-- Drop dependency to OCaml 5.
+## `spatialmsg`
+
+- Display help with `--help`.
 
 # 6 (2023-12-29)
 
