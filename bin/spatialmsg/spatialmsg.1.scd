@@ -6,14 +6,13 @@ spatialmsg - Send messages to a running instance of Spatial Shell over the IPC s
 
 # SYNOPSIS
 
-spatialmsg [options...] [message]
+spatialmsg [--json|--quiet] [-t <type>] [message]
 
 # OPTIONS
 
 *--quiet*
 	Sends the IPC message, but does not print the response from Spatial
 	Shell.
-
 *--json*
 	Prints the response from Spatial Shell as received, that is in JSON.
 *--type, -t <type>*
@@ -45,10 +44,16 @@ message.
 	Success
 
 1
-	Invalid command line arguments
+	Invalid but correctly parsed command line arguments
 
 2
-	Spatial Shell returned an error when
+	Spatial Shell returned an error
+
+124
+	Command line parsing errors
+
+125
+	Internal errors (bugs)
 
 # AUTHOR
 
