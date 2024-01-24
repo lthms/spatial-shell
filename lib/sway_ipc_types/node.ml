@@ -19,7 +19,7 @@ let fullscreen_mode_decoder =
   | 2L -> Global_fullscreen
   | _ -> raise (Invalid_argument "fullscreen_mode_decoder")
 
-type node_type = Root | Output | Workspace | Con | Floating_con
+type node_type = Root | Output | Workspace | Con | Floating_con | Dockarea
 
 let node_type_decoder =
   Ezjsonm_encoding.Decoding.string_enum
@@ -29,6 +29,7 @@ let node_type_decoder =
       ("workspace", Workspace);
       ("con", Con);
       ("floating_con", Floating_con);
+      ("dockarea", Dockarea);
     ]
 
 type border = Normal | None | Pixel | Csd
@@ -44,6 +45,7 @@ type layout =
   | Tabbed
   | Output
   | None
+  | Dockarea
 
 let layout_decoder =
   Ezjsonm_encoding.Decoding.string_enum
@@ -54,6 +56,7 @@ let layout_decoder =
       ("tabbed", Tabbed);
       ("output", Output);
       ("none", None);
+      ("dockarea", Dockarea);
     ]
 
 type mark = string
