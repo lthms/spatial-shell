@@ -1,3 +1,9 @@
+# 8 (unreleased)
+
+## `spatial`
+
+- Fix `dockarea not a correct value` error.
+
 # 7 (2024-01-21)
 
 ## `spatialmsg`
