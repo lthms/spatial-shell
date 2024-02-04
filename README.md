@@ -164,6 +164,14 @@ the [`contrib/` directory][contrib-dir]. These examples use `spatialblock`, a ut
 connecting directly to spatial socket (instead of relying on `spatialmsg`) in
 order to reduce latency.
 
+## Community
+
+If you want to help build a nice community of hackers working on and users
+enjoying Spatial Shell, you can use one of these mediums.
+
+- [`r/spatialshell`][reddit] on Reddit
+- [#spatial-shell][irc] on [Libera.Chat][libera]
+
 ## Acknowledgement
 
 Spatial Shell could not have been possible without sway, which remains a
@@ -184,3 +192,6 @@ of this project, including for the wording of several man pages.
 [waybar]: https://github.com/Alexays/Waybar
 [contrib-dir]: ./contrib/
 [pubkey]: https://soap.coffee/~lthms/files/lthms@soap.coffee.pub
+[reddit]: https://www.reddit.com/r/spatialshell/
+[irc]: irc://libera.chat/#spatial-shell
+[libera]: https://libera.chat/
