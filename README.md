@@ -5,6 +5,8 @@ Shell][material-shell], for [i3][i3] and [sway][sway]. More precisely, it
 organizes your windows within a grid whose rows are the workspaces of your
 favorite WM.
 
+https://github.com/lthms/spatial-shell/assets/1141231/2e5a77d0-c1f1-4cba-a9a1-6604de13bbfe
+
 In a nutshell, Spatial Shell allows you to:
 
 - Move the focus within the grid: on the left or on the right within the current
